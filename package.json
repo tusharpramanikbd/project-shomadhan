@@ -8,10 +8,17 @@
     "server"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "dev": "concurrently -k -n \"client,server\" -c \"blue,magenta\" \"yarn workspace client dev\" \"yarn workspace server dev\""
   },
   "keywords": [],
   "repository": "https://github.com/tusharpramanikbd/project-shomadhan.git",
   "author": "Tushar Pramanik <tusharpramanikbd@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "prettier": "^3.5.3"
+  }
 }

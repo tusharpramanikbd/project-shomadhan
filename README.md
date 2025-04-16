@@ -32,3 +32,7 @@ _(Prerequisites and setup instructions will be added here later)_
 ## Running Locally
 
 _(Instructions for starting development servers will be added here later)_
+
+## Deployment
+
+_(Details on how the client and server are deployed will be added here later)_

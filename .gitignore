@@ -1,0 +1,79 @@
+# Dependency directories
+# Ignore all node_modules directories (still needed for certain dependencies/workflows)
+node_modules/
+
+# Yarn Plug'n'Play (PnP) files (Yarn Berry v2+)
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Environment variables
+# Ignore all .env files and variations (.env.local, .env.development, etc.)
+.env*
+# Explicitly ignore .env in server, just in case (belt and suspenders)
+server/.env*
+# But DO NOT ignore .env.example or similar template files
+!*.env.example
+!*.env.sample
+
+# Build output directories
+client/dist/
+client/.output/
+client/.vite-inspect/
+server/dist/
+server/build/
+
+# Logs
+logs
+*.log
+npm-debug.log* # Keep npm logs just in case
+yarn-debug.log*
+yarn-error.log*
+
+# Docker persistent data (if mapped locally)
+data/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE directories and files
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# VS Code specific user settings/cache (don't ignore shared settings like settings.json)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+
+# Test runner cache/output
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.swp
+
+# Prisma specific
+server/prisma/dev.db
+server/prisma/dev.db-journal
+

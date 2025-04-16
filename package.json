@@ -1,0 +1,17 @@
+{
+  "name": "project-shomadhan",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "repository": "https://github.com/tusharpramanikbd/project-shomadhan.git",
+  "author": "Tushar Pramanik <tusharpramanikbd@gmail.com>",
+  "license": "MIT"
+}

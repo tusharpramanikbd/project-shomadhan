@@ -77,4 +77,5 @@ coverage/
 # Prisma specific
 server/prisma/dev.db
 server/prisma/dev.db-journal
+server/generated/
 

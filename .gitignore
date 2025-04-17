@@ -58,6 +58,7 @@ desktop.ini
 *.sublime-project
 
 # VS Code specific user settings/cache (don't ignore shared settings like settings.json)
+.vscode/
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json

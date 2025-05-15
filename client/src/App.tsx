@@ -1,9 +1,33 @@
+import { Route, Routes } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import HomePage from '@/pages/HomePage';
+import LoginPage from '@/pages/LoginPage';
+
 function App() {
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <h1 className="text-4xl font-bold">Project Shomadhan</h1>
-      <button className="btn btn-error w-64 rounded-full">Click me</button>
-    </div>
+    <>
+      <nav className="bg-gray-100 p-4 shadow">
+        <ul className="flex space-x-4">
+          <li>
+            <Link to="/" className="text-blue-500 hover:text-blue-700">
+              Home
+            </Link>
+          </li>
+          <li>
+            <Link to="/login" className="text-blue-500 hover:text-blue-700">
+              Login
+            </Link>
+          </li>
+        </ul>
+      </nav>
+
+      <div className="container mx-auto p-4">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+        </Routes>
+      </div>
+    </>
   );
 }
 

@@ -24,13 +24,15 @@ server/.env*
 client/dist/
 client/.output/
 client/.vite-inspect/
+client/dev-dist/
+client/.next/
 server/dist/
 server/build/
 
 # Logs
 logs
 *.log
-npm-debug.log* # Keep npm logs just in case
+npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
@@ -58,7 +60,6 @@ desktop.ini
 *.sublime-project
 
 # VS Code specific user settings/cache (don't ignore shared settings like settings.json)
-.vscode/
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -75,7 +76,10 @@ coverage/
 *.swp
 
 # Prisma specific
+# server/prisma/generated-client/ # Usually not needed if client generated in node_modules
 server/prisma/dev.db
 server/prisma/dev.db-journal
+
+# Prisma Client (Generated Code) - if generated outside node_modules
 server/generated/
 

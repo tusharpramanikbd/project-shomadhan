@@ -2,6 +2,7 @@ import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import 'dotenv/config';
 import prisma from './lib/prisma.js';
+import './lib/redis.js';
 
 const app: Express = express();
 

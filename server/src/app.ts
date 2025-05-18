@@ -3,6 +3,7 @@ import cors from 'cors';
 import 'dotenv/config';
 import prisma from './lib/prisma.js';
 import './lib/redis.js';
+import './services/email.service.js';
 
 const app: Express = express();
 

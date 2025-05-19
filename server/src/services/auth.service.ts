@@ -1,7 +1,7 @@
 import crypto from 'crypto';
-import redisClient from '../lib/redis.js';
-import prisma from '../lib/prisma.js';
-import { sendEmail } from './email.service.js';
+import redisClient from '../lib/redis.ts';
+import prisma from '../lib/prisma.ts';
+import { sendEmail } from './email.service.ts';
 import 'dotenv/config';
 
 const OTP_EXPIRY_SECONDS = 10 * 60;
@@ -40,9 +40,7 @@ const generateOtp = (): string => {
  * @returns Promise<void>
  * @throws Error if email is already registered or if sending OTP fails.
  */
-export const sendOtpForEmailVerification = async (
-  email: string
-): Promise<void> => {
+const sendOtpForEmailVerification = async (email: string): Promise<void> => {
   if (!email || !/\S+@\S+\.\S+/.test(email)) {
     throw new Error('Invalid email format provided.');
   }
@@ -99,3 +97,5 @@ export const sendOtpForEmailVerification = async (
     );
   }
 };
+
+export { sendOtpForEmailVerification };

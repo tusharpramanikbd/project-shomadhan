@@ -1,4 +1,4 @@
-import app from './app.js';
+import app from './app.ts';
 
 const PORT: number = parseInt(process.env.PORT || '3001', 10);
 

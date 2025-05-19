@@ -9,6 +9,8 @@
     "isolatedModules": true,
     "strict": true,
     "noUncheckedIndexedAccess": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
     "noImplicitAny": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",

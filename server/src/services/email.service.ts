@@ -26,7 +26,7 @@ const transporter = nodemailer.createTransport({
  * @returns Promise<void>
  * @throws Error if email sending fails.
  */
-export const sendEmail = async (options: MailOptions): Promise<void> => {
+const sendEmail = async (options: MailOptions): Promise<void> => {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     console.error(
       'Email credentials (EMAIL_USER, EMAIL_PASS) are not configured in .env'
@@ -56,3 +56,5 @@ export const sendEmail = async (options: MailOptions): Promise<void> => {
     );
   }
 };
+
+export { sendEmail };

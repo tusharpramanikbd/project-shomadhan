@@ -1,4 +1,4 @@
-import { sign, verify } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -10,7 +10,6 @@ if (!JWT_SECRET) {
 
 export interface JwtPayload {
   userId: number;
-  name: string;
 }
 
 /**
@@ -23,7 +22,7 @@ export const generateToken = (
   payload: JwtPayload,
   expiresIn: number = 3600
 ): string => {
-  return sign(payload, JWT_SECRET!, { algorithm: 'HS256', expiresIn });
+  return jwt.sign(payload, JWT_SECRET!, { algorithm: 'HS256', expiresIn });
 };
 
 /**
@@ -33,7 +32,7 @@ export const generateToken = (
  */
 export const verifyToken = (token: string): JwtPayload | null => {
   try {
-    const decoded = verify(token, JWT_SECRET!) as JwtPayload;
+    const decoded = jwt.verify(token, JWT_SECRET!) as JwtPayload;
     return decoded;
   } catch (error) {
     console.error(

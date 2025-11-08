@@ -1,7 +1,8 @@
 import { Route, Routes } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import HomePage from '@/pages/HomePage';
-import LoginPage from '@/pages/LoginPage';
+import LoginPage from '@/pages/Auth/LoginPage';
+import RegisterPage from './pages/Auth/RegisterPage';
 
 function App() {
   return (
@@ -18,6 +19,11 @@ function App() {
               Login
             </Link>
           </li>
+          <li>
+            <Link to="/register" className="text-blue-500 hover:text-blue-700">
+              Register
+            </Link>
+          </li>
         </ul>
       </nav>
 
@@ -25,6 +31,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
         </Routes>
       </div>
     </>

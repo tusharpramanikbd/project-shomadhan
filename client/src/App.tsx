@@ -6,7 +6,7 @@ import RegisterPage from './pages/Auth/RegisterPage';
 
 function App() {
   return (
-    <>
+    <div className="w-full h-screen">
       <nav className="bg-gray-100 p-4 shadow">
         <ul className="flex space-x-4">
           <li>
@@ -34,7 +34,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
         </Routes>
       </div>
-    </>
+    </div>
   );
 }
 

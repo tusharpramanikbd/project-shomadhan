@@ -185,12 +185,10 @@ const RegisterPage = () => {
             {/* Division */}
             <fieldset className="fieldset w-full">
               <legend className="fieldset-legend">Division</legend>
-              <select
-                defaultValue="Select Division"
-                className="select"
-                {...register('division')}
-              >
-                <option disabled={true}>Select Division</option>
+              <select className="select" {...register('division')}>
+                <option disabled value="">
+                  Select Division
+                </option>
                 {divisions.map((div) => (
                   <option key={div.id} value={div.id}>
                     {div.name}
@@ -206,12 +204,11 @@ const RegisterPage = () => {
             <fieldset className="fieldset w-full">
               <legend className="fieldset-legend">District</legend>
               <select
-                defaultValue="Select District"
                 className="select"
                 {...register('district')}
                 disabled={!districts?.length || isDistrictLoading}
               >
-                <option disabled={true}>
+                <option disabled value="">
                   {isDistrictLoading ? 'Loading...' : 'Select District'}
                 </option>
                 {districts?.map((dist) => (
@@ -229,12 +226,11 @@ const RegisterPage = () => {
             <fieldset className="fieldset w-full">
               <legend className="fieldset-legend">Upazila</legend>
               <select
-                defaultValue="Select Upazila"
                 className="select"
                 {...register('upazila')}
                 disabled={!upazilas?.length || isUpazilaLoading}
               >
-                <option disabled={true}>
+                <option disabled value="">
                   {isUpazilaLoading ? 'Loading...' : 'Select Upazila'}
                 </option>
                 {upazilas?.map((upa) => (

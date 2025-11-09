@@ -1,51 +1,7 @@
+import useGeoLocation from '@/hooks/useGeoLocation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import axios from 'axios';
-import { useEffect, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { z } from 'zod';
-
-const divisions: TDivision[] = [
-  {
-    id: '1',
-    name: 'Chattagram',
-    bn_name: 'চট্টগ্রাম',
-  },
-  {
-    id: '2',
-    name: 'Rajshahi',
-    bn_name: 'রাজশাহী',
-  },
-  {
-    id: '3',
-    name: 'Khulna',
-    bn_name: 'খুলনা',
-  },
-  {
-    id: '4',
-    name: 'Barisal',
-    bn_name: 'বরিশাল',
-  },
-  {
-    id: '5',
-    name: 'Sylhet',
-    bn_name: 'সিলেট',
-  },
-  {
-    id: '6',
-    name: 'Dhaka',
-    bn_name: 'ঢাকা',
-  },
-  {
-    id: '7',
-    name: 'Rangpur',
-    bn_name: 'রংপুর',
-  },
-  {
-    id: '8',
-    name: 'Mymensingh',
-    bn_name: 'ময়মনসিংহ',
-  },
-];
 
 const passwordRegex = new RegExp(
   '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$'
@@ -76,24 +32,6 @@ const schema = z.object({
   address: z.string().min(1, 'Address is required'),
 });
 
-type TDivision = {
-  id: string;
-  name: string;
-  bn_name: string;
-};
-
-type TDistrict = {
-  id: string;
-  name: string;
-  bn_name: string;
-};
-
-type TUpazila = {
-  id: string;
-  name: string;
-  bn_name: string;
-};
-
 type FormFields = z.infer<typeof schema>;
 
 const RegisterPage = () => {
@@ -117,18 +55,29 @@ const RegisterPage = () => {
     resolver: zodResolver(schema),
   });
 
-  const [districts, setDistricts] = useState<TDistrict[]>([]);
-  const [upazilas, setUpazilas] = useState<TUpazila[]>([]);
-  const [isDistrictLoading, setDistrictLoading] = useState(false);
-  const [isUpazilaLoading, setUpazilaLoading] = useState(false);
-
   const selectedDivision = watch('division');
   const selectedDistrict = watch('district');
 
+  const {
+    divisions,
+    districts,
+    upazilas,
+    isDistrictLoading,
+    isUpazilaLoading,
+  } = useGeoLocation({
+    selectedDivision,
+    selectedDistrict,
+    resetField,
+  });
+
   const onSubmit: SubmitHandler<FormFields> = (data) => {
-    const selectedDivisionObj = divisions.find((d) => d.id === data.division);
-    const selectedDistrictObj = districts.find((d) => d.id === data.district);
-    const selectedUpazilaObj = upazilas.find((u) => u.id === data.upazila);
+    const selectedDivisionObj = divisions.find(
+      (div) => div.id === data.division
+    );
+    const selectedDistrictObj = districts?.find(
+      (dis) => dis.id === data.district
+    );
+    const selectedUpazilaObj = upazilas?.find((upa) => upa.id === data.upazila);
 
     const transformedData = {
       ...data,
@@ -151,46 +100,6 @@ const RegisterPage = () => {
 
     console.log(transformedData);
   };
-
-  // When division changes → fetch districts
-  useEffect(() => {
-    if (!selectedDivision) {
-      setDistricts([]);
-      setUpazilas([]);
-      resetField('district');
-      resetField('upazila');
-      return;
-    }
-
-    setDistrictLoading(true);
-    setUpazilas([]);
-    resetField('district');
-    resetField('upazila');
-
-    axios
-      .get(`https://bdapis.vercel.app/geo/v2.0/districts/${selectedDivision}`)
-      .then((res) => setDistricts(res.data.data))
-      .catch(() => setDistricts([]))
-      .finally(() => setDistrictLoading(false));
-  }, [selectedDivision, resetField]);
-
-  // When district changes → fetch upazilas
-  useEffect(() => {
-    if (!selectedDistrict) {
-      setUpazilas([]);
-      resetField('upazila');
-      return;
-    }
-
-    setUpazilaLoading(true);
-    resetField('upazila');
-
-    axios
-      .get(`https://bdapis.vercel.app/geo/v2.0/upazilas/${selectedDistrict}`)
-      .then((res) => setUpazilas(res.data.data))
-      .catch(() => setUpazilas([]))
-      .finally(() => setUpazilaLoading(false));
-  }, [selectedDistrict, resetField]);
 
   return (
     <div className="flex flex-col items-center justify-center">
@@ -282,7 +191,7 @@ const RegisterPage = () => {
                 {...register('division')}
               >
                 <option disabled={true}>Select Division</option>
-                {divisions?.map((div) => (
+                {divisions.map((div) => (
                   <option key={div.id} value={div.id}>
                     {div.name}
                   </option>
@@ -306,8 +215,8 @@ const RegisterPage = () => {
                   {isDistrictLoading ? 'Loading...' : 'Select District'}
                 </option>
                 {districts?.map((dist) => (
-                  <option key={dist.id} value={dist.id}>
-                    {dist.name}
+                  <option key={dist?.id} value={dist?.id}>
+                    {dist?.name}
                   </option>
                 ))}
               </select>
@@ -329,8 +238,8 @@ const RegisterPage = () => {
                   {isUpazilaLoading ? 'Loading...' : 'Select Upazila'}
                 </option>
                 {upazilas?.map((upa) => (
-                  <option key={upa.id} value={upa.id}>
-                    {upa.name}
+                  <option key={upa?.id} value={upa?.id}>
+                    {upa?.name}
                   </option>
                 ))}
               </select>

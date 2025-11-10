@@ -32,7 +32,9 @@
       "@hooks/*": ["src/hooks/*"],
       "@stores/*": ["src/stores/*"],
       "@assets/*": ["src/assets/*"],
-      "@types/*": ["src/types/*"]
+      "@types/*": ["src/types/*"],
+      "@services/*": ["src/services/*"],
+      "@constants/*": ["src/constants/*"]
     }
   },
   "include": ["src"]

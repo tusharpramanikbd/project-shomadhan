@@ -55,9 +55,6 @@ const RegisterPage = () => {
     resolver: zodResolver(schema),
   });
 
-  const selectedDivision = watch('division');
-  const selectedDistrict = watch('district');
-
   const {
     divisions,
     districts,
@@ -65,8 +62,7 @@ const RegisterPage = () => {
     isDistrictLoading,
     isUpazilaLoading,
   } = useGeoLocation({
-    selectedDivision,
-    selectedDistrict,
+    watch,
     resetField,
   });
 

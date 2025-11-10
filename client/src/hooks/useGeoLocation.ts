@@ -1,6 +1,9 @@
 import { TDistrict, TDivision, TUpazila } from '@/types/geoLocationType';
+import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+
+const baseGeoApiUrl = 'https://bdapis.vercel.app/geo/v2.0';
 
 const divisions: TDivision[] = [
   {
@@ -45,62 +48,48 @@ const divisions: TDivision[] = [
   },
 ];
 
-const baseGeoApiUrl = 'https://bdapis.vercel.app/geo/v2.0';
-
 type UseGeoLocationProps = {
-  selectedDivision: string;
-  selectedDistrict: string;
+  watch: (name: 'division' | 'district') => string;
   resetField: (name: 'district' | 'upazila') => void;
 };
 
-const useGeoLocation = ({
-  selectedDivision,
-  selectedDistrict,
-  resetField,
-}: UseGeoLocationProps) => {
-  const [districts, setDistricts] = useState<TDistrict[]>([]);
-  const [upazilas, setUpazilas] = useState<TUpazila[]>([]);
-  const [isDistrictLoading, setDistrictLoading] = useState(false);
-  const [isUpazilaLoading, setUpazilaLoading] = useState(false);
+// Fetcher functions
+const fetchDistricts = async (divisionId: string) => {
+  const res = await axios.get(`${baseGeoApiUrl}/districts/${divisionId}`);
+  return res.data.data as TDistrict[];
+};
 
-  // When division changes → fetch districts
+const fetchUpazilas = async (districtId: string) => {
+  const res = await axios.get(`${baseGeoApiUrl}/upazilas/${districtId}`);
+  return res.data.data as TUpazila[];
+};
+
+const useGeoLocation = ({ watch, resetField }: UseGeoLocationProps) => {
+  const selectedDivision = watch('division');
+  const selectedDistrict = watch('district');
+
+  // Fetching districts (only when division is selected)
+  const { data: districts = [], isFetching: isDistrictLoading } = useQuery({
+    queryKey: ['districts', selectedDivision],
+    queryFn: () => fetchDistricts(selectedDivision!),
+    enabled: !!selectedDivision, // prevents fetching when empty
+  });
+
+  // Fetching upazilas (only when district is selected)
+  const { data: upazilas = [], isFetching: isUpazilaLoading } = useQuery({
+    queryKey: ['upazilas', selectedDistrict],
+    queryFn: () => fetchUpazilas(selectedDistrict!),
+    enabled: !!selectedDistrict,
+  });
+
+  // Resetting dependent fields
   useEffect(() => {
-    if (!selectedDivision) {
-      setDistricts([]);
-      setUpazilas([]);
-      resetField('district');
-      resetField('upazila');
-      return;
-    }
-
-    setDistrictLoading(true);
-    setUpazilas([]);
     resetField('district');
     resetField('upazila');
-
-    axios
-      .get(`${baseGeoApiUrl}/districts/${selectedDivision}`)
-      .then((res) => setDistricts(res.data.data))
-      .catch(() => setDistricts([]))
-      .finally(() => setDistrictLoading(false));
   }, [selectedDivision, resetField]);
 
-  // When district changes → fetch upazilas
   useEffect(() => {
-    if (!selectedDistrict) {
-      setUpazilas([]);
-      resetField('upazila');
-      return;
-    }
-
-    setUpazilaLoading(true);
     resetField('upazila');
-
-    axios
-      .get(`${baseGeoApiUrl}/upazilas/${selectedDistrict}`)
-      .then((res) => setUpazilas(res.data.data))
-      .catch(() => setUpazilas([]))
-      .finally(() => setUpazilaLoading(false));
   }, [selectedDistrict, resetField]);
 
   return {

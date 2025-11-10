@@ -1,4 +1,6 @@
 import useGeoLocation from '@/hooks/useGeoLocation';
+import { useRegisterUser } from '@/services/apis/authApi';
+import { ISignUpUserReq } from '@/types/authTypes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -66,6 +68,9 @@ const RegisterPage = () => {
     resetField,
   });
 
+  const { mutate: registerUser, isPending: isRegisterPending } =
+    useRegisterUser();
+
   const onSubmit: SubmitHandler<FormFields> = (data) => {
     const selectedDivisionObj = divisions.find(
       (div) => div.id === data.division
@@ -75,26 +80,39 @@ const RegisterPage = () => {
     );
     const selectedUpazilaObj = upazilas?.find((upa) => upa.id === data.upazila);
 
-    const transformedData = {
-      ...data,
+    const transformedData: ISignUpUserReq = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email.toLowerCase(),
+      password: data.password.password,
+      address: data.address,
       division: {
         id: selectedDivisionObj?.id,
         name: selectedDivisionObj?.name,
-        bn_name: selectedDivisionObj?.bn_name,
+        bnName: selectedDivisionObj?.bn_name,
       },
       district: {
         id: selectedDistrictObj?.id,
         name: selectedDistrictObj?.name,
-        bn_name: selectedDistrictObj?.bn_name,
+        bnName: selectedDistrictObj?.bn_name,
       },
       upazila: {
         id: selectedUpazilaObj?.id,
         name: selectedUpazilaObj?.name,
-        bn_name: selectedUpazilaObj?.bn_name,
+        bnName: selectedUpazilaObj?.bn_name,
       },
     };
 
     console.log(transformedData);
+
+    registerUser(transformedData, {
+      onSuccess: async (response) => {
+        console.log('Registration Successfull', response);
+      },
+      onError: (err) => {
+        console.error('Registration error:', err);
+      },
+    });
   };
 
   return (
@@ -257,7 +275,7 @@ const RegisterPage = () => {
 
           <div className="mt-6">
             <button
-              disabled={isSubmitting}
+              disabled={isSubmitting || isRegisterPending}
               className="btn btn-primary btn-block"
             >
               Register

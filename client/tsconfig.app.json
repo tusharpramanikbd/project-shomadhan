@@ -25,16 +25,16 @@
     /* Path Aliases */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@components/*": ["src/components/*"],
-      "@pages/*": ["src/pages/*"],
-      "@features/*": ["src/features/*"],
-      "@hooks/*": ["src/hooks/*"],
-      "@stores/*": ["src/stores/*"],
-      "@assets/*": ["src/assets/*"],
-      "@types/*": ["src/types/*"],
-      "@services/*": ["src/services/*"],
-      "@constants/*": ["src/constants/*"]
+      "@/*": ["src/*"]
+      // "@components/*": ["src/components/*"],
+      // "@pages/*": ["src/pages/*"],
+      // "@features/*": ["src/features/*"],
+      // "@hooks/*": ["src/hooks/*"],
+      // "@stores/*": ["src/stores/*"],
+      // "@assets/*": ["src/assets/*"],
+      // "@types/*": ["src/types/*"],
+      // "@services/*": ["src/services/*"],
+      // "@constants/*": ["src/constants/*"]
     }
   },
   "include": ["src"]

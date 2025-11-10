@@ -1,4 +1,4 @@
-import { BASE_API_URL } from '@constants/globals';
+import { BASE_API_URL } from '@/constants/globals';
 import axios, {
   AxiosError,
   AxiosInstance,

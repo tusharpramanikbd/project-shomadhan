@@ -9,7 +9,7 @@ const registerUser = async (
   return response.data;
 };
 
-export const useRegisterUser = () => {
+export const useRegisterUserApi = () => {
   return useMutation({
     mutationFn: registerUser,
     mutationKey: ['registerUser'],

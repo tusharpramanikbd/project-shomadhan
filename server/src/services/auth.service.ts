@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import redisClient from '../lib/redis.ts';
 import prisma from '../lib/prisma.ts';
@@ -5,9 +6,75 @@ import { sendEmail } from './email.service.ts';
 import 'dotenv/config';
 import { generateToken, JwtPayload } from '../utils/jwt.utils.js';
 
+type RegisterPayload = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  division?: { id?: string; name?: string; bnName?: string };
+  district?: { id?: string; name?: string; bnName?: string };
+  upazila?: { id?: string; name?: string; bnName?: string };
+  address?: string;
+};
+
 const OTP_EXPIRY_SECONDS = 10 * 60;
 const OTP_LENGTH = 6;
 const OTP_VERIFICATION_TOKEN_EXPIRY = 15 * 60; // 15 minutes
+
+/**
+ * Handles the logic for registering a user.
+ * - Checks if the email is already registered.
+ * - Generates password hash.
+ * - Stores user in the db.
+ * - Sends the OTP via email request.
+ */
+export const registerUser = async (data: RegisterPayload) => {
+  const {
+    firstName,
+    lastName,
+    email,
+    password,
+    division,
+    district,
+    upazila,
+    address,
+  } = data;
+
+  // Checking existing user
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) {
+    throw new Error('Email is already registered.');
+  }
+
+  // Hashing password
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  // Createing user (isVerified = false)
+  const user = await prisma.user.create({
+    data: {
+      firstName,
+      lastName,
+      email,
+      passwordHash,
+      divisionId: division?.id,
+      divisionName: division?.name,
+      divisionBnName: division?.bnName,
+      districtId: district?.id,
+      districtName: district?.name,
+      districtBnName: district?.bnName,
+      upazilaId: upazila?.id,
+      upazilaName: upazila?.name,
+      upazilaBnName: upazila?.bnName,
+      address,
+      isVerified: false,
+    },
+  });
+
+  // Sending OTP
+  await sendOtpForEmailVerification(email);
+
+  return user;
+};
 
 /**
  * Generates a cryptographically secure random OTP.
@@ -45,19 +112,6 @@ const generateOtp = (): string => {
 const sendOtpForEmailVerification = async (email: string): Promise<void> => {
   if (!email || !/\S+@\S+\.\S+/.test(email)) {
     throw new Error('Invalid email format provided.');
-  }
-
-  try {
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (existingUser) {
-      throw new Error('Email address is already registered.');
-    }
-  } catch (dbError) {
-    console.error('Database error checking for existing user:', dbError);
-    throw new Error('Could not verify email status due to a database error.');
   }
 
   const otp = generateOtp();

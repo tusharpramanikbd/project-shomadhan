@@ -16,20 +16,30 @@ datasource db {
 // Database Models Below ---
 
 model User {
-      userId         Int      @id @default(autoincrement())
-      email          String   @unique
-      name           String
-      passwordHash   String
+  userId         Int      @id @default(autoincrement())
+  firstName      String
+  lastName       String
+  email          String   @unique
+  passwordHash   String
 
-      division       String?
-      district       String?
-      thana          String?
-      addressDetails String?
+  divisionId     String?
+  divisionName   String?
+  divisionBnName String?
 
-      isActive       Boolean  @default(true)
-      createdAt      DateTime @default(now())
-      updatedAt      DateTime @updatedAt
-    }
+  districtId     String?
+  districtName   String?
+  districtBnName String?
+
+  upazilaId      String?
+  upazilaName    String?
+  upazilaBnName  String?
+
+  address        String?
+
+  isVerified     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
 
 model Category {
   categoryId Int     @id @default(autoincrement())

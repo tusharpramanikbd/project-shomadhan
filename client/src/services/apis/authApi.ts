@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 const registerUser = async (
   signUpPayload: ISignUpUserReq
 ): Promise<unknown> => {
-  const response = await axiosClient.post(`/register`, signUpPayload);
+  const response = await axiosClient.post(`/auth/register`, signUpPayload);
   return response.data;
 };
 

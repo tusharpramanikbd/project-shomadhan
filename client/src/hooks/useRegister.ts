@@ -41,6 +41,7 @@ const useRegister = () => {
     register,
     handleSubmit,
     watch,
+    reset,
     resetField,
     formState: { errors, isSubmitting },
   } = useForm<FormFields>({
@@ -108,6 +109,7 @@ const useRegister = () => {
     registerUser(transformedData, {
       onSuccess: async (response) => {
         console.log('Registration Successfull', response);
+        reset();
       },
       onError: (err) => {
         console.error('Registration error:', err);

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import useGeoLocation from './useGeoLocation';
 import { useRegisterUserApi } from '@/services/apis/authApi';
 import { ISignUpUserReq } from '@/types/authTypes';
+import { useNavigate } from 'react-router-dom';
 
 const passwordRegex = new RegExp(
   '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$'
@@ -37,6 +38,7 @@ const schema = z.object({
 type FormFields = z.infer<typeof schema>;
 
 const useRegister = () => {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -110,6 +112,7 @@ const useRegister = () => {
       onSuccess: async (response) => {
         console.log('Registration Successfull', response);
         reset();
+        navigate('/otp', { state: { email: data.email } });
       },
       onError: (err) => {
         console.error('Registration error:', err);

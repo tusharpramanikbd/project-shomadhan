@@ -10,6 +10,9 @@ if (!JWT_SECRET) {
 
 export interface JwtPayload {
   userId: number;
+  email: string;
+  isVerified: boolean;
+  purpose: string;
 }
 
 /**

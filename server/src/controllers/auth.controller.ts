@@ -25,63 +25,10 @@ const registerUser = async (req: Request, res: Response) => {
 };
 
 /**
- * Handles the request to send an OTP for email verification.
- * Expects 'email' in the request body.
- */
-const handleSendOtp = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  try {
-    const { email } = req.body;
-
-    if (!email || typeof email !== 'string') {
-      res.status(400).json({
-        success: false,
-        message: 'Email is required and must be a string.',
-      });
-      return;
-    }
-
-    await AuthService.sendOtpForEmailVerification(email);
-
-    res.status(200).json({
-      success: true,
-      message: 'OTP sent successfully. Please check your email.',
-    });
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === 'Email address is already registered.') {
-        res.status(409).json({
-          success: false,
-          message: error.message,
-        });
-        return;
-      }
-
-      console.error('Error in handleSendOtp controller:', error.message);
-      res.status(500).json({
-        success: false,
-        message:
-          error.message || 'Failed to send OTP due to an internal error.',
-      });
-      return;
-    } else {
-      console.error('Unknown error in handleSendOtp controller:', error);
-      res.status(500).json({
-        success: false,
-        message: 'An unexpected error occurred.',
-      });
-    }
-  }
-};
-
-/**
  * Handles the request to verify an OTP for email verification.
  * Expects 'email' and 'otp' in the request body.
  */
-const handleVerifyOtpForRegistration = async (
+const handleVerifyOtp = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -101,8 +48,7 @@ const handleVerifyOtpForRegistration = async (
       return;
     }
 
-    const { verificationToken } =
-      await AuthService.verifyOtpAndIssueRegistrationToken(email, otp);
+    const { verificationToken } = await AuthService.verifyOtp(email, otp);
 
     res.status(200).json({
       message: 'OTP verified successfully. Please complete your registration.',
@@ -137,4 +83,4 @@ const handleVerifyOtpForRegistration = async (
   }
 };
 
-export { registerUser, handleSendOtp, handleVerifyOtpForRegistration };
+export { registerUser, handleVerifyOtp };

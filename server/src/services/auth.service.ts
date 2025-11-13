@@ -28,7 +28,7 @@ const OTP_VERIFICATION_TOKEN_EXPIRY = 15 * 60; // 15 minutes
  * - Stores user in the db.
  * - Sends the OTP via email request.
  */
-export const registerUser = async (data: RegisterPayload) => {
+const registerUser = async (data: RegisterPayload) => {
   const {
     firstName,
     lastName,
@@ -71,7 +71,7 @@ export const registerUser = async (data: RegisterPayload) => {
   });
 
   // Sending OTP
-  await sendOtpForEmailVerification(email);
+  await sendOtp(email);
 
   return user;
 };
@@ -109,7 +109,7 @@ const generateOtp = (): string => {
  * @returns Promise<void>
  * @throws Error if email is already registered or if sending OTP fails.
  */
-const sendOtpForEmailVerification = async (email: string): Promise<void> => {
+const sendOtp = async (email: string): Promise<void> => {
   if (!email || !/\S+@\S+\.\S+/.test(email)) {
     throw new Error('Invalid email format provided.');
   }
@@ -162,7 +162,7 @@ const sendOtpForEmailVerification = async (email: string): Promise<void> => {
  * @returns Promise<{ verificationToken: string }>
  * @throws Error if OTP is invalid, expired, or if there's a Redis error.
  */
-const verifyOtpAndIssueRegistrationToken = async (
+const verifyOtp = async (
   email: string,
   providedOtp: string
 ): Promise<{ verificationToken: string }> => {
@@ -186,13 +186,21 @@ const verifyOtpAndIssueRegistrationToken = async (
 
     await redisClient.del(redisKey);
 
-    const verificationPayload: Pick<JwtPayload, 'userId'> & {
-      email: string;
-      purpose: string;
-    } = {
-      userId: -1, // Placeholder, as user is not yet created.
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      throw new Error('User not found.');
+    }
+
+    await prisma.user.update({
+      where: { email },
+      data: { isVerified: true },
+    });
+
+    const verificationPayload: JwtPayload = {
+      userId: user.userId,
       email: email,
-      purpose: 'email_otp_verified_for_registration',
+      isVerified: true,
+      purpose: 'auth',
     };
 
     const verificationToken = generateToken(
@@ -219,4 +227,4 @@ const verifyOtpAndIssueRegistrationToken = async (
   }
 };
 
-export { sendOtpForEmailVerification, verifyOtpAndIssueRegistrationToken };
+export { registerUser, sendOtp, verifyOtp };

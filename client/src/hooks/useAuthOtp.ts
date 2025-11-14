@@ -1,4 +1,9 @@
 import { useVerifyOTP } from '@/services/apis/authApi';
+import {
+  parseJWT,
+  setAuthLocalStorage,
+  setUserDataInLocalStorage,
+} from '@/utils/jwt.utils';
 
 type TOnSubmit = {
   email: string;
@@ -13,21 +18,23 @@ const useAuthOtp = () => {
       { email, otp },
       {
         onSuccess: (response: any) => {
-          const token = response.token;
+          const { token, user } = response || {};
           console.log('Token', token);
 
-          // const { confirmed } = parseJWTV2(token);
-          // if (confirmed === undefined) {
-          //   showToast({
-          //     type: 'Error',
-          //     title: ErrorMessages.SOMETHING_WENT_WRONG,
-          //     message: ErrorMessages.TRY_AGAIN,
-          //   });
-          //   return;
-          // }
+          const { isVerified } = parseJWT(token);
+          if (!isVerified) {
+            console.error('Something went wrong on parsing jwt');
 
-          // setAuthLocalStorage(token);
-          // setUserDataInLocalStorage(response.user.Doctor);
+            // showToast({
+            //   type: 'Error',
+            //   title: ErrorMessages.SOMETHING_WENT_WRONG,
+            //   message: ErrorMessages.TRY_AGAIN,
+            // });
+            return;
+          }
+
+          setAuthLocalStorage(token);
+          setUserDataInLocalStorage(user);
           // updateAuthStore(token, confirmed); // TODO: Remove this confirmed, once the backend is fixed
           // removeCountdownFromLS();
 

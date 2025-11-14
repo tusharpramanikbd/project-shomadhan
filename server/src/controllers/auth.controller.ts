@@ -1,21 +1,37 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import * as AuthService from '../services/auth.service.ts';
 
-/**
- * Handles the request to register a user with isVerified false.
- * Verification to be done via OTP later.
- * Expects full user details in the request body.
- */
-const registerUser = async (req: Request, res: Response) => {
+const registerUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = await AuthService.registerUser(req.body);
-    res.status(201).json({
-      success: true,
-      message: 'Registration successful. Please verify your email with OTP.',
-      data: { email: user.email },
+    const { status, email } = await AuthService.registerUser(req.body);
+
+    if (status === 'created') {
+      // New user created
+      res.status(201).json({
+        success: true,
+        message: 'Registration successful. Please verify your email with OTP.',
+        data: { email: email },
+      });
+      return;
+    }
+
+    if (status === 'pending_verification') {
+      // User already existed but is unverified
+      res.status(200).json({
+        success: true,
+        message: 'Email is already registered but not verified. OTP resent.',
+        data: { email: email },
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Unknown registration error.',
     });
   } catch (error) {
     console.error('Registration failed:', error);
+
     res.status(400).json({
       success: false,
       message:
@@ -24,15 +40,7 @@ const registerUser = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * Handles the request to verify an OTP for email verification.
- * Expects 'email' and 'otp' in the request body.
- */
-const handleVerifyOtp = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+const handleVerifyOtp = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, otp } = req.body;
 
@@ -64,24 +72,52 @@ const handleVerifyOtp = async (
         res.status(400).json({ message: error.message });
         return;
       }
-      console.error(
-        'Error in handleVerifyOtpForRegistration controller:',
-        error.message
-      );
+      console.error('Error in handleVerifyOtp controller:', error.message);
       res.status(500).json({
         message:
           error.message || 'Failed to verify OTP due to an internal error.',
       });
       return;
     }
-    console.error(
-      'Unknown error in handleVerifyOtpForRegistration controller:',
-      error
-    );
+    console.error('Unknown error in handleVerifyOtp controller:', error);
     res
       .status(500)
       .json({ message: 'An unexpected error occurred while verifying OTP.' });
   }
 };
 
-export { registerUser, handleVerifyOtp };
+const handleResendOtp = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email } = req.body;
+
+    if (!email || typeof email !== 'string') {
+      res.status(400).json({
+        success: false,
+        message: 'Valid email is required.',
+      });
+      return;
+    }
+
+    const { message, cooldown } = await AuthService.resendOtp(email);
+
+    res.status(200).json({
+      success: true,
+      message,
+      cooldown,
+    });
+  } catch (error: any) {
+    console.error('Error in handleResendOtp controller:', error);
+
+    const statusCode = error.statusCode || 500;
+
+    res.status(statusCode).json({
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Failed to resend OTP due to an internal error.',
+    });
+  }
+};
+
+export { registerUser, handleVerifyOtp, handleResendOtp };

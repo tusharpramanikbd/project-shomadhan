@@ -3,10 +3,13 @@ import * as AuthController from '../controllers/auth.controller.ts';
 
 const router = Router();
 
-// POST /api/register
+// POST /api/auth/register
 router.post('/register', AuthController.registerUser);
 
-// POST /api/otp/verify
+// POST /api/auth/otp/verify
 router.post('/otp/verify', AuthController.handleVerifyOtp);
+
+// POST /api/auth/otp/resend
+router.post('/otp/resend', AuthController.handleResendOtp);
 
 export default router;

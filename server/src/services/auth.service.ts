@@ -17,18 +17,30 @@ type RegisterPayload = {
   address?: string;
 };
 
+type VerifyOtpRes = {
+  token: string;
+  userData: {
+    userId: number;
+    email: string;
+    firstName: string;
+    lastName: string;
+    division: string | null;
+    district: string | null;
+    upazila: string | null;
+    isVerified: boolean;
+  };
+};
+
+type RegisterResult =
+  | { status: 'created'; email: string }
+  | { status: 'pending_verification'; email: string };
+
 const OTP_EXPIRY_SECONDS = 10 * 60;
 const OTP_LENGTH = 6;
-const OTP_VERIFICATION_TOKEN_EXPIRY = 15 * 60; // 15 minutes
+const TOKEN_EXPIRY = 15 * 60; // 15 minutes
+const RESEND_COOLDOWN_SECONDS = 120;
 
-/**
- * Handles the logic for registering a user.
- * - Checks if the email is already registered.
- * - Generates password hash.
- * - Stores user in the db.
- * - Sends the OTP via email request.
- */
-const registerUser = async (data: RegisterPayload) => {
+const registerUser = async (data: RegisterPayload): Promise<RegisterResult> => {
   const {
     firstName,
     lastName,
@@ -41,9 +53,19 @@ const registerUser = async (data: RegisterPayload) => {
   } = data;
 
   // Checking existing user
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    throw new Error('Email is already registered.');
+  const existingUser = await prisma.user.findUnique({ where: { email } });
+
+  if (existingUser) {
+    if (existingUser.isVerified) {
+      throw new Error('Email is already registered.');
+    }
+
+    // User exists but not verified → resend OTP
+    await resendOtp(email);
+    return {
+      status: 'pending_verification',
+      email: data.email,
+    };
   }
 
   // Hashing password
@@ -73,13 +95,136 @@ const registerUser = async (data: RegisterPayload) => {
   // Sending OTP
   await sendOtp(email);
 
-  return user;
+  return {
+    status: 'created',
+    email: user.email,
+  };
 };
 
-/**
- * Generates a cryptographically secure random OTP.
- * @returns A string representing the OTP.
- */
+const verifyOtp = async (
+  email: string,
+  providedOtp: string
+): Promise<VerifyOtpRes> => {
+  if (!email || !providedOtp) {
+    throw new Error('Email and OTP are required.');
+  }
+
+  const redisKey = `otp:email:${email}`;
+
+  try {
+    const storedOtp = await redisClient.get(redisKey);
+
+    if (!storedOtp) {
+      throw new Error('OTP expired or not found. Please request a new one.');
+    }
+
+    if (storedOtp !== providedOtp) {
+      // TODO: Implement attempt counting here to prevent brute-force attacks
+      throw new Error('Invalid OTP provided.');
+    }
+
+    await redisClient.del(redisKey);
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      throw new Error('User not found.');
+    }
+
+    await prisma.user.update({
+      where: { email },
+      data: { isVerified: true },
+    });
+
+    const verificationPayload: JwtPayload = {
+      userId: user.userId,
+      email: email,
+      isVerified: true,
+      purpose: 'auth',
+    };
+
+    const token = generateToken(verificationPayload, TOKEN_EXPIRY);
+
+    const userData = {
+      userId: user.userId,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      division: user.divisionName,
+      district: user.districtName,
+      upazila: user.upazilaName,
+      isVerified: true,
+    };
+
+    console.log(
+      `OTP for ${email} verified successfully. Registration token issued.`
+    );
+    return { token, userData };
+  } catch (error) {
+    console.error('Error verifying OTP:', error);
+    if (
+      error instanceof Error &&
+      (error.message.includes('Invalid OTP') ||
+        error.message.includes('OTP expired'))
+    ) {
+      throw error;
+    }
+    throw new Error(
+      `Failed to verify OTP. ${error instanceof Error ? error.message : 'Internal server error'}`
+    );
+  }
+};
+
+const resendOtp = async (
+  email: string
+): Promise<{ message: string; cooldown: number }> => {
+  if (!email || !/\S+@\S+\.\S+/.test(email)) {
+    throw new Error('Invalid email format provided.');
+  }
+
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user) {
+    throw new Error('User not found.');
+  }
+
+  if (user.isVerified) {
+    throw new Error('This email is already verified. Please log in.');
+  }
+
+  const cooldownKey = `otp:cooldown:${email}`;
+  const existingCooldown = await redisClient.ttl(cooldownKey);
+
+  // If TTL > 0 → user must wait
+  if (existingCooldown > 0) {
+    return {
+      message: 'Please wait before requesting another OTP.',
+      cooldown: existingCooldown,
+    };
+  }
+
+  const otp = generateOtp();
+  const redisKey = `otp:email:${email}`;
+
+  await redisClient.set(redisKey, otp, { EX: OTP_EXPIRY_SECONDS });
+
+  await redisClient.set(cooldownKey, 'locked', { EX: RESEND_COOLDOWN_SECONDS });
+
+  console.log(`New OTP ${otp} generated + stored for ${email}`);
+
+  await sendEmail({
+    to: email,
+    subject: 'Your Project Shomadhan Verification Code (Resent)',
+    text: `Your new verification code is: ${otp}`,
+    html: `<p>Your new verification code is: <strong>${otp}</strong></p>`,
+  });
+
+  return {
+    message: 'A new OTP has been sent to your email.',
+    cooldown: RESEND_COOLDOWN_SECONDS,
+  };
+};
+
+// Helper functions
 const generateOtp = (): string => {
   const min = Math.pow(10, OTP_LENGTH - 1);
   const max = Math.pow(10, OTP_LENGTH) - 1;
@@ -99,16 +244,6 @@ const generateOtp = (): string => {
   }
 };
 
-/**
- * Handles the logic for sending an OTP to a user's email for verification.
- * - Checks if the email is already registered.
- * - Generates an OTP.
- * - Stores the OTP in Redis with an expiry.
- * - Sends the OTP via email.
- * @param email - The email address to send the OTP to.
- * @returns Promise<void>
- * @throws Error if email is already registered or if sending OTP fails.
- */
 const sendOtp = async (email: string): Promise<void> => {
   if (!email || !/\S+@\S+\.\S+/.test(email)) {
     throw new Error('Invalid email format provided.');
@@ -154,102 +289,4 @@ const sendOtp = async (email: string): Promise<void> => {
   }
 };
 
-type VerifyOtpRes = {
-  token: string;
-  userData: {
-    userId: number;
-    email: string;
-    firstName: string;
-    lastName: string;
-    division: string | null;
-    district: string | null;
-    upazila: string | null;
-    isVerified: boolean;
-  };
-};
-
-/**
- * Verifies the OTP provided by the user against the one stored in Redis.
- * If successful, generates a short-lived token to authorize full registration.
- * @param email - The user's email address.
- * @param providedOtp - The OTP string provided by the user.
- * @returns Promise<{ verificationToken: string }>
- * @throws Error if OTP is invalid, expired, or if there's a Redis error.
- */
-const verifyOtp = async (
-  email: string,
-  providedOtp: string
-): Promise<VerifyOtpRes> => {
-  if (!email || !providedOtp) {
-    throw new Error('Email and OTP are required.');
-  }
-
-  const redisKey = `otp:email:${email}`;
-
-  try {
-    const storedOtp = await redisClient.get(redisKey);
-
-    if (!storedOtp) {
-      throw new Error('OTP expired or not found. Please request a new one.');
-    }
-
-    if (storedOtp !== providedOtp) {
-      // TODO: Implement attempt counting here to prevent brute-force attacks
-      throw new Error('Invalid OTP provided.');
-    }
-
-    await redisClient.del(redisKey);
-
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
-      throw new Error('User not found.');
-    }
-
-    await prisma.user.update({
-      where: { email },
-      data: { isVerified: true },
-    });
-
-    const verificationPayload: JwtPayload = {
-      userId: user.userId,
-      email: email,
-      isVerified: true,
-      purpose: 'auth',
-    };
-
-    const token = generateToken(
-      verificationPayload,
-      OTP_VERIFICATION_TOKEN_EXPIRY
-    );
-
-    const userData = {
-      userId: user.userId,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      division: user.divisionName,
-      district: user.districtName,
-      upazila: user.upazilaName,
-      isVerified: true,
-    };
-
-    console.log(
-      `OTP for ${email} verified successfully. Registration token issued.`
-    );
-    return { token, userData };
-  } catch (error) {
-    console.error('Error verifying OTP:', error);
-    if (
-      error instanceof Error &&
-      (error.message.includes('Invalid OTP') ||
-        error.message.includes('OTP expired'))
-    ) {
-      throw error;
-    }
-    throw new Error(
-      `Failed to verify OTP. ${error instanceof Error ? error.message : 'Internal server error'}`
-    );
-  }
-};
-
-export { registerUser, sendOtp, verifyOtp };
+export { registerUser, verifyOtp, resendOtp };

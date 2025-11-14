@@ -9,7 +9,7 @@ type TOnSubmit = {
 
 const useAuthOtp = () => {
   const { mutate: verifyOTP, isPending } = useVerifyOTP();
-  const { setTokens, setUser } = useAuthStore();
+  const { setToken, setUser } = useAuthStore();
 
   const onSubmit = ({ email, otp }: TOnSubmit) => {
     verifyOTP(
@@ -31,11 +31,7 @@ const useAuthOtp = () => {
             return;
           }
 
-          setTokens({
-            accessToken: token,
-            refreshToken: token,
-            idToken: token,
-          });
+          setToken(token);
 
           setUser(user);
 

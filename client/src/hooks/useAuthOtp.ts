@@ -1,9 +1,6 @@
 import { useVerifyOTP } from '@/services/apis/authApi';
-import {
-  parseJWT,
-  setAuthLocalStorage,
-  setUserDataInLocalStorage,
-} from '@/utils/jwt.utils';
+import { parseJWT } from '@/utils/jwt.utils';
+import { useAuthStore } from '@/stores/auth.store';
 
 type TOnSubmit = {
   email: string;
@@ -12,6 +9,7 @@ type TOnSubmit = {
 
 const useAuthOtp = () => {
   const { mutate: verifyOTP, isPending } = useVerifyOTP();
+  const { setTokens, setUser } = useAuthStore();
 
   const onSubmit = ({ email, otp }: TOnSubmit) => {
     verifyOTP(
@@ -33,9 +31,14 @@ const useAuthOtp = () => {
             return;
           }
 
-          setAuthLocalStorage(token);
-          setUserDataInLocalStorage(user);
-          // updateAuthStore(token, confirmed); // TODO: Remove this confirmed, once the backend is fixed
+          setTokens({
+            accessToken: token,
+            refreshToken: token,
+            idToken: token,
+          });
+
+          setUser(user);
+
           // removeCountdownFromLS();
 
           // navigate(routes.MAIN.PATIENTS.ROOT);

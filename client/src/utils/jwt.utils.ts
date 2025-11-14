@@ -7,13 +7,6 @@ type JwtPayload = {
   iat: number;
 };
 
-// Enums
-enum AuthLocalStorageKeys {
-  ACCESS_TOKEN = 'access_token',
-  REFRESH_TOKEN = 'refresh_token',
-  ID_TOKEN = 'id_token',
-}
-
 export const parseJWT = (token: string): JwtPayload => {
   if (!token || token === 'undefined') {
     return {
@@ -36,37 +29,4 @@ export const parseJWT = (token: string): JwtPayload => {
 
     return JSON.parse(jsonPayload);
   }
-};
-
-/*
- **** JWT Auth helpers
- */
-export function setAuthLocalStorage(token: string) {
-  localStorage.setItem(AuthLocalStorageKeys.ACCESS_TOKEN, token);
-  localStorage.setItem(AuthLocalStorageKeys.REFRESH_TOKEN, token);
-  localStorage.setItem(AuthLocalStorageKeys.ID_TOKEN, token);
-}
-
-export function clearAuthLocalStorage() {
-  localStorage.removeItem(AuthLocalStorageKeys.ACCESS_TOKEN);
-  localStorage.removeItem(AuthLocalStorageKeys.REFRESH_TOKEN);
-  localStorage.removeItem(AuthLocalStorageKeys.ID_TOKEN);
-}
-
-export function getAuthLocalStorage() {
-  const accessToken =
-    localStorage.getItem(AuthLocalStorageKeys.ACCESS_TOKEN) || '';
-  const refreshToken =
-    localStorage.getItem(AuthLocalStorageKeys.REFRESH_TOKEN) || '';
-  const idToken = localStorage.getItem(AuthLocalStorageKeys.ID_TOKEN) || '';
-
-  return {
-    [AuthLocalStorageKeys.ACCESS_TOKEN]: accessToken,
-    [AuthLocalStorageKeys.REFRESH_TOKEN]: refreshToken,
-    [AuthLocalStorageKeys.ID_TOKEN]: idToken,
-  };
-}
-
-export const setUserDataInLocalStorage = (data: any) => {
-  localStorage.setItem('user', JSON.stringify(data));
 };

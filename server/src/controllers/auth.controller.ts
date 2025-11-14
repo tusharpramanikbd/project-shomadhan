@@ -48,11 +48,12 @@ const handleVerifyOtp = async (
       return;
     }
 
-    const { verificationToken } = await AuthService.verifyOtp(email, otp);
+    const { token, userData } = await AuthService.verifyOtp(email, otp);
 
     res.status(200).json({
       message: 'OTP verified successfully. Please complete your registration.',
-      verificationToken: verificationToken,
+      token,
+      user: userData,
     });
   } catch (error) {
     if (error instanceof Error) {

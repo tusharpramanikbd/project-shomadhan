@@ -154,6 +154,20 @@ const sendOtp = async (email: string): Promise<void> => {
   }
 };
 
+type VerifyOtpRes = {
+  token: string;
+  userData: {
+    userId: number;
+    email: string;
+    firstName: string;
+    lastName: string;
+    division: string | null;
+    district: string | null;
+    upazila: string | null;
+    isVerified: boolean;
+  };
+};
+
 /**
  * Verifies the OTP provided by the user against the one stored in Redis.
  * If successful, generates a short-lived token to authorize full registration.
@@ -165,7 +179,7 @@ const sendOtp = async (email: string): Promise<void> => {
 const verifyOtp = async (
   email: string,
   providedOtp: string
-): Promise<{ verificationToken: string }> => {
+): Promise<VerifyOtpRes> => {
   if (!email || !providedOtp) {
     throw new Error('Email and OTP are required.');
   }
@@ -203,15 +217,26 @@ const verifyOtp = async (
       purpose: 'auth',
     };
 
-    const verificationToken = generateToken(
+    const token = generateToken(
       verificationPayload,
       OTP_VERIFICATION_TOKEN_EXPIRY
     );
 
+    const userData = {
+      userId: user.userId,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      division: user.divisionName,
+      district: user.districtName,
+      upazila: user.upazilaName,
+      isVerified: true,
+    };
+
     console.log(
       `OTP for ${email} verified successfully. Registration token issued.`
     );
-    return { verificationToken };
+    return { token, userData };
   } catch (error) {
     console.error('Error verifying OTP:', error);
     if (

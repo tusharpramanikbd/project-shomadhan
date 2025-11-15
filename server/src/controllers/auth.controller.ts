@@ -27,15 +27,14 @@ const registerUser = async (req: Request, res: Response): Promise<void> => {
 
     res.status(500).json({
       success: false,
-      message: 'Unknown registration error.',
+      message: 'Unexpected registration state.',
     });
   } catch (error) {
     console.error('Registration failed:', error);
 
     res.status(400).json({
       success: false,
-      message:
-        error instanceof Error ? error.message : 'Unknown registration error',
+      message: error instanceof Error ? error.message : 'Internal server error',
     });
   }
 };

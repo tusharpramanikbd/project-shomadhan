@@ -121,8 +121,7 @@ const useRegister = () => {
         navigate('/otp', { state: { email: email } });
       },
       onError: (err) => {
-        console.error('Registration error:', err);
-        toastError(err.message || 'Registration failed. Please try again.');
+        toastError(err?.message || 'Registration failed. Please try again.');
       },
     });
   };

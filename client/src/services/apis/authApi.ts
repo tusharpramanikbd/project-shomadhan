@@ -1,6 +1,8 @@
 import { ISignUpUserReq } from '@/types/authTypes';
 import { axiosClient } from '../clients/axiosClient';
 import { useMutation } from '@tanstack/react-query';
+import { formatAxiosError } from '../clients/clientUtils';
+import { AxiosError } from 'axios';
 
 interface ITokenRes {
   status: boolean;
@@ -16,6 +18,12 @@ interface ITokenRes {
     upazila: string | null;
     isVerified: boolean;
   };
+}
+
+interface IResendOtpRes {
+  status: boolean;
+  message: string;
+  cooldown: number;
 }
 
 interface IVerifyOTPReq {
@@ -34,16 +42,36 @@ type RegisterUserResponse = {
 const registerUser = async (
   signUpPayload: ISignUpUserReq
 ): Promise<RegisterUserResponse> => {
-  const response = await axiosClient.post(`/auth/register`, signUpPayload);
-  return response.data;
+  try {
+    const response = await axiosClient.post(`/auth/register`, signUpPayload);
+    return response.data;
+  } catch (error) {
+    const axiosError = formatAxiosError(error as AxiosError);
+    throw axiosError;
+  }
 };
 
 const verifyOTP = async ({ email, otp }: IVerifyOTPReq): Promise<ITokenRes> => {
-  const response = await axiosClient.post(`/auth/otp/verify`, {
-    email,
-    otp,
-  });
-  return response.data;
+  try {
+    const response = await axiosClient.post(`/auth/otp/verify`, {
+      email,
+      otp,
+    });
+    return response.data;
+  } catch (error) {
+    const axiosError = formatAxiosError(error as AxiosError);
+    throw axiosError;
+  }
+};
+
+const resendOtp = async (email: string): Promise<IResendOtpRes> => {
+  try {
+    const response = await axiosClient.post(`/auth/otp/resend`, { email });
+    return response.data;
+  } catch (error) {
+    const axiosError = formatAxiosError(error as AxiosError);
+    throw axiosError;
+  }
 };
 
 export const useRegisterUserApi = () => {
@@ -57,5 +85,12 @@ export const useVerifyOTP = () => {
   return useMutation({
     mutationFn: verifyOTP,
     mutationKey: ['verifyOTP'],
+  });
+};
+
+export const useResendOtp = () => {
+  return useMutation({
+    mutationFn: resendOtp,
+    mutationKey: ['resendOtp'],
   });
 };

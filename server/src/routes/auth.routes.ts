@@ -12,4 +12,7 @@ router.post('/otp/verify', AuthController.handleVerifyOtp);
 // POST /api/auth/otp/resend
 router.post('/otp/resend', AuthController.handleResendOtp);
 
+// POST /api/auth/login
+router.post('/login', AuthController.handleLoginUser);
+
 export default router;

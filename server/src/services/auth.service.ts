@@ -35,9 +35,18 @@ type RegisterResult =
   | { status: 'created'; email: string }
   | { status: 'pending_verification'; email: string };
 
+type LoginResult =
+  | { status: 'pending_verification'; email: string }
+  | { status: 'logged_in'; token: string; userData: any };
+
+type ResendOtpResult = {
+  message: string;
+  cooldown: number;
+};
+
 const OTP_EXPIRY_SECONDS = 10 * 60;
 const OTP_LENGTH = 6;
-const TOKEN_EXPIRY = 15 * 60; // 15 minutes
+const TOKEN_EXPIRY = 30 * 60; // 30 minutes
 const RESEND_COOLDOWN_SECONDS = 120;
 
 const registerUser = async (data: RegisterPayload): Promise<RegisterResult> => {
@@ -174,9 +183,7 @@ const verifyOtp = async (
   }
 };
 
-const resendOtp = async (
-  email: string
-): Promise<{ message: string; cooldown: number }> => {
+const resendOtp = async (email: string): Promise<ResendOtpResult> => {
   if (!email || !/\S+@\S+\.\S+/.test(email)) {
     throw new Error('Invalid email format provided.');
   }
@@ -221,6 +228,49 @@ const resendOtp = async (
   return {
     message: 'A new OTP has been sent to your email.',
     cooldown: RESEND_COOLDOWN_SECONDS,
+  };
+};
+
+const loginUser = async (
+  email: string,
+  password: string
+): Promise<LoginResult> => {
+  if (!email || !/\S+@\S+\.\S+/.test(email) || !password) {
+    throw new Error('Invalid email or password');
+  }
+
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) throw new Error('Invalid email or password');
+
+  if (!user.isVerified) {
+    await resendOtp(email);
+    return {
+      status: 'pending_verification',
+      email: email,
+    };
+  }
+
+  const payload = {
+    userId: user.userId,
+    email: user.email,
+    isVerified: true,
+    purpose: 'auth',
+  };
+
+  const token = generateToken(payload, TOKEN_EXPIRY);
+
+  return {
+    status: 'logged_in',
+    token,
+    userData: {
+      userId: user.userId,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      division: user.divisionName,
+      district: user.districtName,
+      upazila: user.upazilaName,
+    },
   };
 };
 
@@ -289,4 +339,4 @@ const sendOtp = async (email: string): Promise<void> => {
   }
 };
 
-export { registerUser, verifyOtp, resendOtp };
+export { registerUser, verifyOtp, resendOtp, loginUser };

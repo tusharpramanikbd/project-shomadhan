@@ -120,4 +120,55 @@ const handleResendOtp = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export { registerUser, handleVerifyOtp, handleResendOtp };
+const handleLoginUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      res.status(400).json({
+        message: 'Email and password are required.',
+      });
+      return;
+    }
+
+    if (typeof email !== 'string' || typeof password !== 'string') {
+      res.status(400).json({
+        message: 'Email and password must be valid strings.',
+      });
+      return;
+    }
+
+    const result = await AuthService.loginUser(email, password);
+
+    if (result.status === 'pending_verification') {
+      res.status(401).json({
+        message:
+          'Login pending verification. Please verify your email with OTP.',
+        data: { email: result.email },
+      });
+      return;
+    }
+
+    if (result.status === 'logged_in') {
+      res.status(200).json({
+        message: 'Login successful.',
+        token: result.token,
+        user: result.userData,
+      });
+      return;
+    }
+
+    // If control reaches here → service returned something unexpected
+    res.status(500).json({
+      message: 'Unexpected login state.',
+    });
+  } catch (error) {
+    console.error('Login failed:', error);
+
+    res.status(500).json({
+      message: error instanceof Error ? error.message : 'Internal server error',
+    });
+  }
+};
+
+export { registerUser, handleVerifyOtp, handleResendOtp, handleLoginUser };

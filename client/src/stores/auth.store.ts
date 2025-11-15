@@ -1,12 +1,23 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+type User = {
+  userId: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  division: string | null;
+  district: string | null;
+  upazila: string | null;
+  isVerified: boolean;
+};
+
 interface AuthState {
   accessToken: string | null;
-  user: any | null;
+  user: User | null;
 
   setToken: (token: string) => void;
-  setUser: (user: any) => void;
+  setUser: (user: User) => void;
   logout: () => void;
 }
 

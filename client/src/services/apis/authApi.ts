@@ -3,7 +3,19 @@ import { axiosClient } from '../clients/axiosClient';
 import { useMutation } from '@tanstack/react-query';
 
 interface ITokenRes {
+  status: boolean;
+  message: string;
   token: string;
+  data: {
+    userId: number;
+    email: string;
+    firstName: string;
+    lastName: string;
+    division: string | null;
+    district: string | null;
+    upazila: string | null;
+    isVerified: boolean;
+  };
 }
 
 interface IVerifyOTPReq {

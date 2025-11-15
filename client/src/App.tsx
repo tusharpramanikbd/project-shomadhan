@@ -4,6 +4,7 @@ import HomePage from '@/pages/HomePage';
 import LoginPage from '@/pages/Auth/LoginPage';
 import RegisterPage from '@/pages/Auth/RegisterPage';
 import OtpPage from '@/pages/Auth/OtpPage';
+import FeedPage from '@/pages/FeedPage';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/otp" element={<OtpPage />} />
+          <Route path="/feed" element={<FeedPage />} />
         </Routes>
       </div>
     </div>

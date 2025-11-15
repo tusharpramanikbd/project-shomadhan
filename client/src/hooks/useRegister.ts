@@ -5,6 +5,7 @@ import useGeoLocation from './useGeoLocation';
 import { useRegisterUserApi } from '@/services/apis/authApi';
 import { ISignUpUserReq } from '@/types/authTypes';
 import { useNavigate } from 'react-router-dom';
+import { toastError, toastSuccess } from '@/components/Toast/CustomToast';
 
 const passwordRegex = new RegExp(
   '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$'
@@ -106,16 +107,22 @@ const useRegister = () => {
       },
     };
 
-    console.log(transformedData);
-
     registerUser(transformedData, {
       onSuccess: async (response) => {
-        console.log('Registration Successfull', response);
+        const {
+          message,
+          data: { email },
+        } = response;
+
+        console.log('Registration successful:', response);
+        toastSuccess(message);
+
         reset();
-        navigate('/otp', { state: { email: data.email } });
+        navigate('/otp', { state: { email: email } });
       },
       onError: (err) => {
         console.error('Registration error:', err);
+        toastError(err.message || 'Registration failed. Please try again.');
       },
     });
   };

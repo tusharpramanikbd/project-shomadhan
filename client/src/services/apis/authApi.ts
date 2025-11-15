@@ -11,9 +11,17 @@ interface IVerifyOTPReq {
   otp: string;
 }
 
+type RegisterUserResponse = {
+  status: boolean;
+  message: string;
+  data: {
+    email: string;
+  };
+};
+
 const registerUser = async (
   signUpPayload: ISignUpUserReq
-): Promise<unknown> => {
+): Promise<RegisterUserResponse> => {
   const response = await axiosClient.post(`/auth/register`, signUpPayload);
   return response.data;
 };

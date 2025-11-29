@@ -41,7 +41,7 @@ type LoginResult =
 
 type ResendOtpResult = {
   message: string;
-  cooldown: number;
+  cooldownUntil: number;
 };
 
 const OTP_EXPIRY_SECONDS = 10 * 60;
@@ -118,10 +118,11 @@ const verifyOtp = async (
     throw new Error('Email and OTP are required.');
   }
 
-  const redisKey = `otp:email:${email}`;
+  const otpKey = `otp:email:${email}`;
+  const cooldownKey = `otp:cooldown:${email}`;
 
   try {
-    const storedOtp = await redisClient.get(redisKey);
+    const storedOtp = await redisClient.get(otpKey);
 
     if (!storedOtp) {
       throw new Error('OTP expired or not found. Please request a new one.');
@@ -132,7 +133,8 @@ const verifyOtp = async (
       throw new Error('Invalid OTP provided.');
     }
 
-    await redisClient.del(redisKey);
+    await redisClient.del(otpKey);
+    await redisClient.del(cooldownKey);
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
@@ -199,25 +201,29 @@ const resendOtp = async (email: string): Promise<ResendOtpResult> => {
   }
 
   const cooldownKey = `otp:cooldown:${email}`;
-  const existingCooldown = await redisClient.ttl(cooldownKey);
+  const cooldownUntilStr = await redisClient.get(cooldownKey);
 
-  // If TTL > 0 → user must wait
-  if (existingCooldown > 0) {
-    return {
-      message: 'Please wait before requesting another OTP.',
-      cooldown: existingCooldown,
-    };
+  // If cooldown exists, returning remaining time
+  if (cooldownUntilStr) {
+    const cooldownUntil = parseInt(cooldownUntilStr, 10);
+    const now = Date.now();
+
+    // If cooldown is still active
+    if (now < cooldownUntil) {
+      return {
+        message: 'Please wait before requesting another OTP.',
+        cooldownUntil,
+      };
+    }
   }
 
   const otp = generateOtp();
-  const redisKey = `otp:email:${email}`;
-
-  await redisClient.set(redisKey, otp, { EX: OTP_EXPIRY_SECONDS });
-
-  await redisClient.set(cooldownKey, 'locked', { EX: RESEND_COOLDOWN_SECONDS });
+  const otpKey = `otp:email:${email}`;
+  await redisClient.set(otpKey, otp, { EX: OTP_EXPIRY_SECONDS });
 
   console.log(`New OTP ${otp} generated + stored for ${email}`);
 
+  // Sending OTP email
   await sendEmail({
     to: email,
     subject: 'Your Project Shomadhan Verification Code (Resent)',
@@ -225,9 +231,17 @@ const resendOtp = async (email: string): Promise<ResendOtpResult> => {
     html: `<p>Your new verification code is: <strong>${otp}</strong></p>`,
   });
 
+  // Calculating and storing cooldown timestamp
+  const now = Date.now();
+  const cooldownUntil = now + RESEND_COOLDOWN_SECONDS * 1000;
+
+  await redisClient.set(cooldownKey, cooldownUntil.toString(), {
+    EX: RESEND_COOLDOWN_SECONDS,
+  });
+
   return {
     message: 'A new OTP has been sent to your email.',
-    cooldown: RESEND_COOLDOWN_SECONDS,
+    cooldownUntil,
   };
 };
 

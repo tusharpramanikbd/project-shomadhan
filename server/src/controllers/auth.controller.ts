@@ -82,12 +82,10 @@ const handleVerifyOtp = async (req: Request, res: Response): Promise<void> => {
       return;
     }
     console.error('Unknown error in handleVerifyOtp controller:', error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: 'An unexpected error occurred while verifying OTP.',
-      });
+    res.status(500).json({
+      success: false,
+      message: 'An unexpected error occurred while verifying OTP.',
+    });
   }
 };
 
@@ -103,12 +101,12 @@ const handleResendOtp = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const { message, cooldown } = await AuthService.resendOtp(email);
+    const { message, cooldownUntil } = await AuthService.resendOtp(email);
 
     res.status(200).json({
       success: true,
       message,
-      cooldown,
+      cooldownUntil,
     });
   } catch (error: any) {
     console.error('Error in handleResendOtp controller:', error);

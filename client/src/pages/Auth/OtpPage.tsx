@@ -1,9 +1,11 @@
 import OtpInput from '@/components/OtpInput';
+import useCountDownTimer from '@/hooks/useCountDownTimer';
 import useOtp from '@/hooks/useOTP';
 
 const OtpPage = () => {
   const { email, otp, isLoading, handleSubmit, handleResend, onOTPChange } =
     useOtp();
+  const { remaining, isCooldownActive } = useCountDownTimer();
   return (
     <div className="flex flex-col items-center justify-center">
       <div className="card glass w-128 shadow-lg p-8">
@@ -19,9 +21,14 @@ const OtpPage = () => {
           <OtpInput onChange={onOTPChange} disabled={isLoading} />
         </div>
         <div className="flex items-center justify-end mt-4">
+          {isCooldownActive ? (
+            <span className="text-gray-500 mr-4">
+              Resend available in {remaining}s
+            </span>
+          ) : null}
           <button
             onClick={() => handleResend(email)}
-            disabled={isLoading}
+            disabled={isLoading || isCooldownActive}
             className="btn btn-link"
           >
             Resend OTP

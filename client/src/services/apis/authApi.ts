@@ -23,7 +23,7 @@ interface ITokenRes {
 interface IResendOtpRes {
   status: boolean;
   message: string;
-  cooldown: number;
+  cooldownUntil: number;
 }
 
 interface IVerifyOTPReq {

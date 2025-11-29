@@ -4,6 +4,7 @@ import { useResendOtp, useVerifyOTP } from '@/services/apis/authApi';
 import { useAuthStore } from '@/stores/auth.store';
 import { parseJWT } from '@/utils/jwt.utils';
 import { toastError, toastSuccess } from '@/components/Toast/CustomToast';
+import { useOtpStore } from '@/stores/otp.store';
 
 type TOnSubmit = {
   email: string;
@@ -15,6 +16,7 @@ const useOtp = () => {
   const { mutate: verifyOTP, isPending: isVerifyPending } = useVerifyOTP();
   const { mutate: resendOtp, isPending: isResendPending } = useResendOtp();
   const { setToken, setUser } = useAuthStore();
+  const { setCooldown } = useOtpStore();
   const navigate = useNavigate();
 
   const location = useLocation();
@@ -53,7 +55,12 @@ const useOtp = () => {
   const handleResend = (email: string) => {
     resendOtp(email, {
       onSuccess: (response) => {
-        const { message } = response || {};
+        const { message, cooldownUntil } = response || {};
+
+        if (cooldownUntil) {
+          setCooldown(cooldownUntil);
+        }
+
         toastSuccess(message || 'OTP resend successfully.');
       },
       onError: (error) => {

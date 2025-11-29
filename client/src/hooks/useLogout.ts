@@ -1,12 +1,15 @@
 import { useAuthStore } from '@/stores/auth.store';
+import { useOtpStore } from '@/stores/otp.store';
 import { useNavigate } from 'react-router-dom';
 
 const useLogout = () => {
   const { logout } = useAuthStore();
+  const { clearCooldown } = useOtpStore();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
+    clearCooldown();
     navigate('/login', { replace: true });
 
     // Double safety: prevent back using `window.history.pushState`

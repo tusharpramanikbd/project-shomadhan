@@ -41,7 +41,7 @@ type LoginResult =
 
 type ResendOtpResult = {
   message: string;
-  cooldownUntil: number;
+  cooldownUntil: number | undefined;
 };
 
 const OTP_EXPIRY_SECONDS = 10 * 60;
@@ -70,7 +70,7 @@ const registerUser = async (data: RegisterPayload): Promise<RegisterResult> => {
     }
 
     // User exists but not verified → resend OTP
-    await resendOtp(email);
+    await resendOtp(email, { bypassCooldown: true });
     return {
       status: 'pending_verification',
       email: data.email,
@@ -185,7 +185,12 @@ const verifyOtp = async (
   }
 };
 
-const resendOtp = async (email: string): Promise<ResendOtpResult> => {
+const resendOtp = async (
+  email: string,
+  options?: { bypassCooldown?: boolean }
+): Promise<ResendOtpResult> => {
+  const bypassCooldown = options?.bypassCooldown ?? false;
+
   if (!email || !/\S+@\S+\.\S+/.test(email)) {
     throw new Error('Invalid email format provided.');
   }
@@ -200,19 +205,14 @@ const resendOtp = async (email: string): Promise<ResendOtpResult> => {
     throw new Error('This email is already verified. Please log in.');
   }
 
-  const cooldownKey = `otp:cooldown:${email}`;
-  const cooldownUntilStr = await redisClient.get(cooldownKey);
+  // Checking cooldown only when NOT bypassing
+  if (!bypassCooldown) {
+    const cooldownCheck = await checkCooldown(email);
 
-  // If cooldown exists, returning remaining time
-  if (cooldownUntilStr) {
-    const cooldownUntil = parseInt(cooldownUntilStr, 10);
-    const now = Date.now();
-
-    // If cooldown is still active
-    if (now < cooldownUntil) {
+    if (cooldownCheck.blocked) {
       return {
         message: 'Please wait before requesting another OTP.',
-        cooldownUntil,
+        cooldownUntil: cooldownCheck.cooldownUntil,
       };
     }
   }
@@ -231,17 +231,12 @@ const resendOtp = async (email: string): Promise<ResendOtpResult> => {
     html: `<p>Your new verification code is: <strong>${otp}</strong></p>`,
   });
 
-  // Calculating and storing cooldown timestamp
-  const now = Date.now();
-  const cooldownUntil = now + RESEND_COOLDOWN_SECONDS * 1000;
-
-  await redisClient.set(cooldownKey, cooldownUntil.toString(), {
-    EX: RESEND_COOLDOWN_SECONDS,
-  });
+  // Setting cooldown ONLY IF not bypassing
+  const cooldownUntil = bypassCooldown ? null : await setCooldown(email);
 
   return {
     message: 'A new OTP has been sent to your email.',
-    cooldownUntil,
+    cooldownUntil: cooldownUntil ?? undefined,
   };
 };
 
@@ -351,6 +346,36 @@ const sendOtp = async (email: string): Promise<void> => {
       `Failed to send OTP. ${error instanceof Error ? error.message : 'Internal server error'}`
     );
   }
+};
+
+const getCooldown = async (email: string): Promise<number | null> => {
+  const cooldownKey = `otp:cooldown:${email}`;
+  const cooldownUntilStr = await redisClient.get(cooldownKey);
+  return cooldownUntilStr ? parseInt(cooldownUntilStr, 10) : null;
+};
+
+const setCooldown = async (email: string): Promise<number> => {
+  const cooldownKey = `otp:cooldown:${email}`;
+  const cooldownUntil = Date.now() + RESEND_COOLDOWN_SECONDS * 1000;
+
+  await redisClient.set(cooldownKey, cooldownUntil.toString(), {
+    EX: RESEND_COOLDOWN_SECONDS,
+  });
+
+  return cooldownUntil;
+};
+
+const checkCooldown = async (
+  email: string
+): Promise<{ blocked: boolean; cooldownUntil?: number }> => {
+  const cooldownUntil = await getCooldown(email);
+  const now = Date.now();
+
+  if (cooldownUntil && now < cooldownUntil) {
+    return { blocked: true, cooldownUntil };
+  }
+
+  return { blocked: false };
 };
 
 export { registerUser, verifyOtp, resendOtp, loginUser };

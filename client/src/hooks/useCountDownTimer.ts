@@ -1,4 +1,5 @@
 import { useOtpStore } from '@/stores/otp.store';
+import { formatMinuteSec } from '@/utils/dateTime.utils';
 import { useEffect, useState } from 'react';
 
 const useCountDownTimer = () => {
@@ -29,7 +30,7 @@ const useCountDownTimer = () => {
   }, [cooldownUntil, clearCooldown]);
 
   return {
-    remaining,
+    remaining: formatMinuteSec(remaining),
     isCooldownActive: remaining > 0,
   };
 };

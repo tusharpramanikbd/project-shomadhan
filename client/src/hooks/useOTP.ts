@@ -16,7 +16,7 @@ const useOtp = () => {
   const { mutate: verifyOTP, isPending: isVerifyPending } = useVerifyOTP();
   const { mutate: resendOtp, isPending: isResendPending } = useResendOtp();
   const { setToken, setUser } = useAuthStore();
-  const { setCooldown } = useOtpStore();
+  const { setCooldown, clearCooldown } = useOtpStore();
   const navigate = useNavigate();
 
   const location = useLocation();
@@ -40,8 +40,9 @@ const useOtp = () => {
 
           setToken(token);
           setUser(user);
+          clearCooldown();
 
-          navigate('/feed');
+          navigate('/feed', { replace: true });
         },
         onError: (error) => {
           toastError(

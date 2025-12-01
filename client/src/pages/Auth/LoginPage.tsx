@@ -1,8 +1,48 @@
 const LoginPage = () => {
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <h1 className="text-4xl font-bold">Project Shomadhan - Login</h1>
-      <button className="btn btn-error w-64 rounded-full">Click me</button>
+    <div className="flex flex-col items-center justify-center">
+      <div className="card glass w-128 shadow-lg">
+        <form className="card-body">
+          {/* Email Address */}
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend">Email Address</legend>
+            <input
+              type="text"
+              className="input w-full"
+              placeholder="example@email.com"
+              // {...register('email')}
+            />
+            {/* {errors.email && (
+              <p className="label text-red-500">{errors.email.message}</p>
+            )} */}
+          </fieldset>
+
+          {/* Password */}
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend">Password</legend>
+            <input
+              type="password"
+              className="input w-full"
+              placeholder="Password"
+              // {...register('password.password')}
+            />
+            {/* {errors.password?.password && (
+              <p className="label text-red-500 text-wrap">
+                {errors.password?.password.message}
+              </p>
+            )} */}
+          </fieldset>
+
+          <div className="mt-6">
+            <button
+              // disabled={isSubmitting}
+              className="btn btn-primary btn-block"
+            >
+              Login
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

@@ -252,7 +252,7 @@ const loginUser = async (
   if (!user) throw new Error('Invalid email or password');
 
   if (!user.isVerified) {
-    await resendOtp(email);
+    await resendOtp(email, { bypassCooldown: true });
     return {
       status: 'pending_verification',
       email: email,

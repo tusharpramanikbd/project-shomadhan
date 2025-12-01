@@ -20,6 +20,11 @@ interface ITokenRes {
   };
 }
 
+interface ILoginReq {
+  email: string;
+  password: string;
+}
+
 interface IResendOtpRes {
   status: boolean;
   message: string;
@@ -44,6 +49,22 @@ const registerUser = async (
 ): Promise<RegisterUserResponse> => {
   try {
     const response = await axiosClient.post(`/auth/register`, signUpPayload);
+    return response.data;
+  } catch (error) {
+    const axiosError = formatAxiosError(error as AxiosError);
+    throw axiosError;
+  }
+};
+
+const loginUser = async ({
+  email,
+  password,
+}: ILoginReq): Promise<ITokenRes> => {
+  try {
+    const response = await axiosClient.post(`/auth/login`, {
+      email,
+      password,
+    });
     return response.data;
   } catch (error) {
     const axiosError = formatAxiosError(error as AxiosError);
@@ -78,6 +99,13 @@ export const useRegisterUserApi = () => {
   return useMutation({
     mutationFn: registerUser,
     mutationKey: ['registerUser'],
+  });
+};
+
+export const useLoginUserApi = () => {
+  return useMutation({
+    mutationFn: loginUser,
+    mutationKey: ['loginUser'],
   });
 };
 

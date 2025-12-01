@@ -20,7 +20,7 @@ interface ITokenRes {
   };
 }
 
-interface ILoginReq {
+export interface ILoginReq {
   email: string;
   password: string;
 }

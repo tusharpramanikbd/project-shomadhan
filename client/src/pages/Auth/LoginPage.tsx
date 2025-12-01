@@ -1,8 +1,11 @@
+import useLogin from '@/hooks/useLogin';
+
 const LoginPage = () => {
+  const { register, errors, isSubmitting, handleSubmit, onSubmit } = useLogin();
   return (
     <div className="flex flex-col items-center justify-center">
       <div className="card glass w-128 shadow-lg">
-        <form className="card-body">
+        <form className="card-body" onSubmit={handleSubmit(onSubmit)}>
           {/* Email Address */}
           <fieldset className="fieldset">
             <legend className="fieldset-legend">Email Address</legend>
@@ -10,11 +13,11 @@ const LoginPage = () => {
               type="text"
               className="input w-full"
               placeholder="example@email.com"
-              // {...register('email')}
+              {...register('email')}
             />
-            {/* {errors.email && (
+            {errors.email && (
               <p className="label text-red-500">{errors.email.message}</p>
-            )} */}
+            )}
           </fieldset>
 
           {/* Password */}
@@ -24,18 +27,18 @@ const LoginPage = () => {
               type="password"
               className="input w-full"
               placeholder="Password"
-              // {...register('password.password')}
+              {...register('password')}
             />
-            {/* {errors.password?.password && (
+            {errors.password && (
               <p className="label text-red-500 text-wrap">
-                {errors.password?.password.message}
+                {errors.password.message}
               </p>
-            )} */}
+            )}
           </fieldset>
 
           <div className="mt-6">
             <button
-              // disabled={isSubmitting}
+              disabled={isSubmitting}
               className="btn btn-primary btn-block"
             >
               Login

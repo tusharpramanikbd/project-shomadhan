@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import * as AuthService from '../services/auth.service.ts';
 import { ApiError } from 'src/errors/ApiError.ts';
+import { BadRequestError } from 'src/errors/index.ts';
 
-const registerUser = async (
+const handleRegisterUser = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -40,7 +41,11 @@ const registerUser = async (
   }
 };
 
-const handleVerifyOtp = async (req: Request, res: Response): Promise<void> => {
+const handleVerifyOtp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const { email, otp } = req.body;
 
@@ -50,11 +55,7 @@ const handleVerifyOtp = async (req: Request, res: Response): Promise<void> => {
       !otp ||
       typeof otp !== 'string'
     ) {
-      res.status(400).json({
-        success: false,
-        message: 'Email and OTP are required and must be strings.',
-      });
-      return;
+      throw new BadRequestError('Email and OTP must be valid strings.');
     }
 
     const { token, userData } = await AuthService.verifyOtp(email, otp);
@@ -66,27 +67,8 @@ const handleVerifyOtp = async (req: Request, res: Response): Promise<void> => {
       data: userData,
     });
   } catch (error) {
-    if (error instanceof Error) {
-      if (
-        error.message.includes('Invalid OTP') ||
-        error.message.includes('OTP expired')
-      ) {
-        res.status(400).json({ success: false, message: error.message });
-        return;
-      }
-      console.error('Error in handleVerifyOtp controller:', error.message);
-      res.status(500).json({
-        success: false,
-        message:
-          error.message || 'Failed to verify OTP due to an internal error.',
-      });
-      return;
-    }
-    console.error('Unknown error in handleVerifyOtp controller:', error);
-    res.status(500).json({
-      success: false,
-      message: 'An unexpected error occurred while verifying OTP.',
-    });
+    // Handled by global error handler
+    next(error);
   }
 };
 
@@ -181,4 +163,9 @@ const handleLoginUser = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export { registerUser, handleVerifyOtp, handleResendOtp, handleLoginUser };
+export {
+  handleRegisterUser,
+  handleVerifyOtp,
+  handleResendOtp,
+  handleLoginUser,
+};

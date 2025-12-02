@@ -5,7 +5,12 @@ import prisma from '../lib/prisma.ts';
 import { sendEmail } from './email.service.ts';
 import 'dotenv/config';
 import { generateToken, JwtPayload } from '../utils/jwt.utils.js';
-import { ConflictError } from 'src/errors/index.ts';
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+  UnauthorizedError,
+} from 'src/errors/index.ts';
 
 type RegisterPayload = {
   firstName: string;
@@ -117,74 +122,64 @@ const verifyOtp = async (
   providedOtp: string
 ): Promise<VerifyOtpRes> => {
   if (!email || !providedOtp) {
-    throw new Error('Email and OTP are required.');
+    throw new BadRequestError('Email and OTP are required.');
   }
 
   const otpKey = `otp:email:${email}`;
   const cooldownKey = `otp:cooldown:${email}`;
 
-  try {
-    const storedOtp = await redisClient.get(otpKey);
+  const storedOtp = await redisClient.get(otpKey);
 
-    if (!storedOtp) {
-      throw new Error('OTP expired or not found. Please request a new one.');
-    }
-
-    if (storedOtp !== providedOtp) {
-      // TODO: Implement attempt counting here to prevent brute-force attacks
-      throw new Error('Invalid OTP provided.');
-    }
-
-    await redisClient.del(otpKey);
-    await redisClient.del(cooldownKey);
-
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
-      throw new Error('User not found.');
-    }
-
-    await prisma.user.update({
-      where: { email },
-      data: { isVerified: true },
-    });
-
-    const verificationPayload: JwtPayload = {
-      userId: user.userId,
-      email: email,
-      isVerified: true,
-      purpose: 'auth',
-    };
-
-    const token = generateToken(verificationPayload, TOKEN_EXPIRY);
-
-    const userData = {
-      userId: user.userId,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      division: user.divisionName,
-      district: user.districtName,
-      upazila: user.upazilaName,
-      isVerified: true,
-    };
-
-    console.log(
-      `OTP for ${email} verified successfully. Registration token issued.`
-    );
-    return { token, userData };
-  } catch (error) {
-    console.error('Error verifying OTP:', error);
-    if (
-      error instanceof Error &&
-      (error.message.includes('Invalid OTP') ||
-        error.message.includes('OTP expired'))
-    ) {
-      throw error;
-    }
-    throw new Error(
-      `Failed to verify OTP. ${error instanceof Error ? error.message : 'Internal server error'}`
+  if (!storedOtp) {
+    throw new UnauthorizedError(
+      'The OTP has expired or is invalid. Please request a new one.'
     );
   }
+
+  if (storedOtp !== providedOtp) {
+    // TODO: Implement attempt counting here to prevent brute-force attacks
+    throw new UnauthorizedError('The OTP you entered is incorrect.');
+  }
+
+  // Clean up Redis
+  await redisClient.del(otpKey);
+  await redisClient.del(cooldownKey);
+
+  // Validate user
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) {
+    throw new NotFoundError('User not found for this email.');
+  }
+
+  await prisma.user.update({
+    where: { email },
+    data: { isVerified: true },
+  });
+
+  const verificationPayload: JwtPayload = {
+    userId: user.userId,
+    email: user.email,
+    isVerified: true,
+    purpose: 'auth',
+  };
+
+  const token = generateToken(verificationPayload, TOKEN_EXPIRY);
+
+  const userData = {
+    userId: user.userId,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    division: user.divisionName,
+    district: user.districtName,
+    upazila: user.upazilaName,
+    isVerified: true,
+  };
+
+  console.log(
+    `OTP for ${email} verified successfully. Registration token issued.`
+  );
+  return { token, userData };
 };
 
 const resendOtp = async (

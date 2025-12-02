@@ -8,7 +8,7 @@ const router = Router();
 // ==============================
 
 // POST /api/auth/register
-router.post('/register', AuthController.registerUser);
+router.post('/register', AuthController.handleRegisterUser);
 
 // POST /api/auth/otp/verify
 router.post('/otp/verify', AuthController.handleVerifyOtp);

@@ -3,6 +3,10 @@ import * as AuthController from '../controllers/auth.controller.ts';
 
 const router = Router();
 
+// ==============================
+// Public Routes
+// ==============================
+
 // POST /api/auth/register
 router.post('/register', AuthController.registerUser);
 
@@ -14,5 +18,9 @@ router.post('/otp/resend', AuthController.handleResendOtp);
 
 // POST /api/auth/login
 router.post('/login', AuthController.handleLoginUser);
+
+// ==============================
+// Private Routes
+// ==============================
 
 export default router;

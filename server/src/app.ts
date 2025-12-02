@@ -5,6 +5,7 @@ import prisma from './lib/prisma.ts';
 import './lib/redis.ts';
 import './services/email.service.ts';
 import authRoutes from './routes/auth.routes.ts';
+import { errorHandler } from './middleware/errorHandler.ts';
 
 const app: Express = express();
 
@@ -40,5 +41,7 @@ app.get('/api/health', async (req: Request, res: Response) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+
+app.use(errorHandler);
 
 export default app;

@@ -5,6 +5,7 @@ import prisma from '../lib/prisma.ts';
 import { sendEmail } from './email.service.ts';
 import 'dotenv/config';
 import { generateToken, JwtPayload } from '../utils/jwt.utils.js';
+import { ConflictError } from 'src/errors/index.ts';
 
 type RegisterPayload = {
   firstName: string;
@@ -32,7 +33,7 @@ type VerifyOtpRes = {
 };
 
 type RegisterResult =
-  | { status: 'created'; email: string }
+  | { status: 'user_created'; email: string }
   | { status: 'pending_verification'; email: string };
 
 type LoginResult =
@@ -64,16 +65,17 @@ const registerUser = async (data: RegisterPayload): Promise<RegisterResult> => {
   // Checking existing user
   const existingUser = await prisma.user.findUnique({ where: { email } });
 
-  if (existingUser) {
-    if (existingUser.isVerified) {
-      throw new Error('Email is already registered.');
-    }
+  // Case 1: verified user exists → cannot register
+  if (existingUser && existingUser.isVerified) {
+    throw new ConflictError('Email is already registered and verified.');
+  }
 
-    // User exists but not verified → resend OTP
+  // Case 2: unverified user exists → resend OTP (bypass cooldown)
+  if (existingUser && !existingUser.isVerified) {
     await resendOtp(email, { bypassCooldown: true });
     return {
       status: 'pending_verification',
-      email: data.email,
+      email,
     };
   }
 
@@ -105,7 +107,7 @@ const registerUser = async (data: RegisterPayload): Promise<RegisterResult> => {
   await sendOtp(email);
 
   return {
-    status: 'created',
+    status: 'user_created',
     email: user.email,
   };
 };

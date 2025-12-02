@@ -1,16 +1,22 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import * as AuthService from '../services/auth.service.ts';
+import { ApiError } from 'src/errors/ApiError.ts';
 
-const registerUser = async (req: Request, res: Response): Promise<void> => {
+const registerUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const { status, email } = await AuthService.registerUser(req.body);
 
-    if (status === 'created') {
+    if (status === 'user_created') {
       // New user created
       res.status(201).json({
         success: true,
-        message: 'Registration successful. Please verify your email with OTP.',
-        data: { email: email },
+        message:
+          'Registration successful! Please verify your account using the OTP sent to your email.',
+        data: { email },
       });
       return;
     }
@@ -19,23 +25,18 @@ const registerUser = async (req: Request, res: Response): Promise<void> => {
       // User already existed but is unverified
       res.status(200).json({
         success: true,
-        message: 'Email is already registered but not verified. OTP resent.',
-        data: { email: email },
+        message:
+          'This email is already registered but not verified. A new OTP has been sent to your inbox.',
+        data: { email },
       });
       return;
     }
 
-    res.status(500).json({
-      success: false,
-      message: 'Unexpected registration state.',
-    });
+    // Should not normally happen
+    next(new ApiError(500, 'Unexpected registration state.'));
   } catch (error) {
-    console.error('Registration failed:', error);
-
-    res.status(400).json({
-      success: false,
-      message: error instanceof Error ? error.message : 'Internal server error',
-    });
+    // Handled by global error handler
+    next(error);
   }
 };
 

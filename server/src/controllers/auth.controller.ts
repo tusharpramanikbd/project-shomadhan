@@ -72,37 +72,39 @@ const handleVerifyOtp = async (
   }
 };
 
-const handleResendOtp = async (req: Request, res: Response): Promise<void> => {
+const handleResendOtp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const { email } = req.body;
 
     if (!email || typeof email !== 'string') {
-      res.status(400).json({
+      throw new BadRequestError('A valid email address is required.');
+    }
+
+    const { blocked, message, cooldownUntil } =
+      await AuthService.resendOtp(email);
+
+    // Cooldown active (not an error)
+    if (blocked) {
+      res.status(200).json({
         success: false,
-        message: 'Valid email is required.',
+        message: message,
+        cooldownUntil: cooldownUntil,
       });
       return;
     }
 
-    const { message, cooldownUntil } = await AuthService.resendOtp(email);
-
+    // OTP sent successfully
     res.status(200).json({
       success: true,
-      message,
-      cooldownUntil,
+      message: message,
+      cooldownUntil: cooldownUntil,
     });
-  } catch (error: any) {
-    console.error('Error in handleResendOtp controller:', error);
-
-    const statusCode = error.statusCode || 500;
-
-    res.status(statusCode).json({
-      success: false,
-      message:
-        error instanceof Error
-          ? error.message
-          : 'Failed to resend OTP due to an internal error.',
-    });
+  } catch (error) {
+    next(error);
   }
 };
 

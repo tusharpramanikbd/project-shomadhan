@@ -46,8 +46,9 @@ type LoginResult =
   | { status: 'logged_in'; token: string; userData: any };
 
 type ResendOtpResult = {
+  blocked: boolean;
   message: string;
-  cooldownUntil: number | undefined;
+  cooldownUntil?: number;
 };
 
 const OTP_EXPIRY_SECONDS = 10 * 60;
@@ -189,17 +190,17 @@ const resendOtp = async (
   const bypassCooldown = options?.bypassCooldown ?? false;
 
   if (!email || !/\S+@\S+\.\S+/.test(email)) {
-    throw new Error('Invalid email format provided.');
+    throw new BadRequestError('Please provide a valid email address.');
   }
 
   const user = await prisma.user.findUnique({ where: { email } });
 
   if (!user) {
-    throw new Error('User not found.');
+    throw new NotFoundError('No account found with this email address.');
   }
 
   if (user.isVerified) {
-    throw new Error('This email is already verified. Please log in.');
+    throw new ConflictError('This email is already verified. Please log in.');
   }
 
   // Checking cooldown only when NOT bypassing
@@ -208,7 +209,8 @@ const resendOtp = async (
 
     if (cooldownCheck.blocked) {
       return {
-        message: 'Please wait before requesting another OTP.',
+        blocked: true,
+        message: 'Please wait before requesting another verification code.',
         cooldownUntil: cooldownCheck.cooldownUntil,
       };
     }
@@ -216,6 +218,7 @@ const resendOtp = async (
 
   const otp = generateOtp();
   const otpKey = `otp:email:${email}`;
+
   await redisClient.set(otpKey, otp, { EX: OTP_EXPIRY_SECONDS });
 
   console.log(`New OTP ${otp} generated + stored for ${email}`);
@@ -229,11 +232,12 @@ const resendOtp = async (
   });
 
   // Setting cooldown ONLY IF not bypassing
-  const cooldownUntil = bypassCooldown ? null : await setCooldown(email);
+  const cooldownUntil = bypassCooldown ? undefined : await setCooldown(email);
 
   return {
-    message: 'A new OTP has been sent to your email.',
-    cooldownUntil: cooldownUntil ?? undefined,
+    blocked: false,
+    message: 'A new verification code has been sent to your email.',
+    cooldownUntil,
   };
 };
 

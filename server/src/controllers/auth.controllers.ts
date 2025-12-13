@@ -3,7 +3,7 @@ import * as AuthService from '../services/auth.services.ts';
 import { ApiError } from 'src/errors/ApiError.ts';
 import { BadRequestError } from 'src/errors/index.ts';
 
-const handleRegisterUser = async (
+export const handleRegisterUser = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -41,7 +41,7 @@ const handleRegisterUser = async (
   }
 };
 
-const handleVerifyOtp = async (
+export const handleVerifyOtp = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -72,7 +72,7 @@ const handleVerifyOtp = async (
   }
 };
 
-const handleResendOtp = async (
+export const handleResendOtp = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -108,7 +108,7 @@ const handleResendOtp = async (
   }
 };
 
-const handleLoginUser = async (
+export const handleLoginUser = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -145,11 +145,4 @@ const handleLoginUser = async (
   } catch (error) {
     next(error);
   }
-};
-
-export {
-  handleRegisterUser,
-  handleVerifyOtp,
-  handleResendOtp,
-  handleLoginUser,
 };

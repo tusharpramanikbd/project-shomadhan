@@ -29,7 +29,7 @@ import {
 } from 'src/utils/auth.utils.ts';
 import { TJwtPayload } from 'src/types/jwt.types.ts';
 
-const registerUser = async (
+export const registerUser = async (
   data: TRegisterPayload
 ): Promise<TRegisterResponse> => {
   const {
@@ -93,7 +93,7 @@ const registerUser = async (
   };
 };
 
-const verifyOtp = async (
+export const verifyOtp = async (
   email: string,
   providedOtp: string
 ): Promise<TVerifyOtpResponse> => {
@@ -158,7 +158,7 @@ const verifyOtp = async (
   return { token, userData };
 };
 
-const resendOtp = async (
+export const resendOtp = async (
   email: string,
   options?: { bypassCooldown?: boolean }
 ): Promise<TResendOtpResponse> => {
@@ -216,7 +216,7 @@ const resendOtp = async (
   };
 };
 
-const loginUser = async (
+export const loginUser = async (
   email: string,
   password: string
 ): Promise<TLoginResponse> => {
@@ -269,5 +269,3 @@ const loginUser = async (
     },
   };
 };
-
-export { registerUser, verifyOtp, resendOtp, loginUser };

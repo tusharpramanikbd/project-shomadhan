@@ -14,7 +14,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const sendEmail = async (options: TMailOptions): Promise<void> => {
+export const sendEmail = async (options: TMailOptions): Promise<void> => {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     console.error(
       'Email credentials (EMAIL_USER, EMAIL_PASS) are not configured in .env'
@@ -44,5 +44,3 @@ const sendEmail = async (options: TMailOptions): Promise<void> => {
     );
   }
 };
-
-export { sendEmail };

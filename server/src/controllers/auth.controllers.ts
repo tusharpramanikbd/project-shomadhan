@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import * as AuthService from '../services/auth.service.ts';
+import * as AuthService from '../services/auth.services.ts';
 import { ApiError } from 'src/errors/ApiError.ts';
 import { BadRequestError } from 'src/errors/index.ts';
 

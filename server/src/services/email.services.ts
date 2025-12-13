@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import 'dotenv/config';
-import { TMailOptions } from 'src/types/email.type.ts';
+import { TMailOptions } from 'src/types/email.types.ts';
 
 // Creating a Nodemailer transporter using environment variables
 // This transporter configuration is specific to Gmail.

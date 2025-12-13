@@ -3,9 +3,9 @@ import cors from 'cors';
 import 'dotenv/config';
 import prisma from './lib/prisma.ts';
 import './lib/redis.ts';
-import './services/email.service.ts';
+import './services/email.services.ts';
 import authRoutes from './routes/auth.routes.ts';
-import { errorHandler } from './middleware/errorHandler.ts';
+import { errorHandler } from './middlewares/errorHandler.ts';
 
 const app: Express = express();
 

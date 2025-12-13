@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt.utils.ts';
-import { TJwtPayload } from 'src/types/jwt.type.ts';
+import { TJwtPayload } from 'src/types/jwt.types.ts';
 
 // Extend the Express Request interface to include the 'user' property
 // This allows us to attach the decoded JWT payload to the request object

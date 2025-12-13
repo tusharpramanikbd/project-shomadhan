@@ -1,9 +1,9 @@
 import bcrypt from 'bcryptjs';
 import redisClient from '../lib/redis.ts';
 import prisma from '../lib/prisma.ts';
-import { sendEmail } from './email.service.ts';
+import { sendEmail } from './email.services.ts';
 import 'dotenv/config';
-import { generateToken } from '../utils/jwt.utils.js';
+import { generateToken } from '../utils/jwt.utils.ts';
 import {
   BadRequestError,
   ConflictError,
@@ -16,18 +16,18 @@ import {
   TRegisterResponse,
   TResendOtpResponse,
   TVerifyOtpResponse,
-} from 'src/types/auth.type.ts';
+} from 'src/types/auth.types.ts';
 import {
   OTP_EXPIRY_SECONDS,
   TOKEN_EXPIRY,
-} from 'src/constants/auth.constant.ts';
+} from 'src/constants/auth.constants.ts';
 import {
   checkCooldown,
   generateOtp,
   sendOtp,
   setCooldown,
-} from 'src/utils/auth.util.ts';
-import { TJwtPayload } from 'src/types/jwt.type.ts';
+} from 'src/utils/auth.utils.ts';
+import { TJwtPayload } from 'src/types/jwt.types.ts';
 
 const registerUser = async (
   data: TRegisterPayload

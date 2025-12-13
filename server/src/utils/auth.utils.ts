@@ -2,10 +2,10 @@ import {
   OTP_EXPIRY_SECONDS,
   OTP_LENGTH,
   RESEND_COOLDOWN_SECONDS,
-} from 'src/constants/auth.constant.ts';
+} from 'src/constants/auth.constants.ts';
 import crypto from 'crypto';
 import redisClient from 'src/lib/redis.ts';
-import { sendEmail } from 'src/services/email.service.ts';
+import { sendEmail } from 'src/services/email.services.ts';
 
 export const generateOtp = (): string => {
   const min = Math.pow(10, OTP_LENGTH - 1);

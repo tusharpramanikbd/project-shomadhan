@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
+import { TJwtPayload } from 'src/types/jwt.type.ts';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -8,34 +9,16 @@ if (!JWT_SECRET) {
   process.exit(1);
 }
 
-export interface JwtPayload {
-  userId: number;
-  email: string;
-  isVerified: boolean;
-  purpose: string;
-}
-
-/**
- * Generates a JSON Web Token.
- * @param payload - The data to include in the token (e.g., userId, name).
- * @param expiresIn - Token expiration time in seconds. Defaults to 3600 seconds (1 hour).
- * @returns The generated JWT string.
- */
 export const generateToken = (
-  payload: JwtPayload,
+  payload: TJwtPayload,
   expiresIn: number = 3600
 ): string => {
   return jwt.sign(payload, JWT_SECRET!, { algorithm: 'HS256', expiresIn });
 };
 
-/**
- * Verifies a JSON Web Token.
- * @param token - The JWT string to verify.
- * @returns The decoded payload if the token is valid, otherwise null.
- */
-export const verifyToken = (token: string): JwtPayload | null => {
+export const verifyToken = (token: string): TJwtPayload | null => {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET!) as JwtPayload;
+    const decoded = jwt.verify(token, JWT_SECRET!) as TJwtPayload;
     return decoded;
   } catch (error) {
     console.error(

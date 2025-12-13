@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken, JwtPayload } from '../utils/jwt.utils.ts';
+import { verifyToken } from '../utils/jwt.utils.ts';
+import { TJwtPayload } from 'src/types/jwt.type.ts';
 
 // Extend the Express Request interface to include the 'user' property
 // This allows us to attach the decoded JWT payload to the request object
@@ -7,17 +8,11 @@ import { verifyToken, JwtPayload } from '../utils/jwt.utils.ts';
 declare global {
   namespace Express {
     interface Request {
-      user?: JwtPayload;
+      user?: TJwtPayload;
     }
   }
 }
 
-/**
- * Express middleware to authenticate requests using a JWT.
- * It checks for a token in the 'Authorization' header (Bearer scheme).
- * If the token is valid, it attaches the decoded payload to `req.user`.
- * If the token is missing or invalid, it sends a 401 or 403 response.
- */
 const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Getting token part after "Bearer "

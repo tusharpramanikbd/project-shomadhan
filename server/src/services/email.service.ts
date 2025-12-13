@@ -1,14 +1,8 @@
 import nodemailer from 'nodemailer';
 import 'dotenv/config';
+import { TMailOptions } from 'src/types/email.type.ts';
 
-interface MailOptions {
-  to: string;
-  subject: string;
-  text?: string;
-  html?: string;
-}
-
-// Create a Nodemailer transporter using environment variables
+// Creating a Nodemailer transporter using environment variables
 // This transporter configuration is specific to Gmail.
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
@@ -20,13 +14,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-/**
- * Sends an email.
- * @param options - MailOptions object containing to, subject, text, and/or html.
- * @returns Promise<void>
- * @throws Error if email sending fails.
- */
-const sendEmail = async (options: MailOptions): Promise<void> => {
+const sendEmail = async (options: TMailOptions): Promise<void> => {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     console.error(
       'Email credentials (EMAIL_USER, EMAIL_PASS) are not configured in .env'

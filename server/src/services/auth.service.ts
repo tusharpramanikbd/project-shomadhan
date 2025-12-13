@@ -246,21 +246,32 @@ const loginUser = async (
   password: string
 ): Promise<LoginResult> => {
   if (!email || !/\S+@\S+\.\S+/.test(email) || !password) {
-    throw new Error('Invalid email or password');
+    throw new BadRequestError('Email and password are required.');
   }
 
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) throw new Error('Invalid email or password');
 
+  if (!user) {
+    throw new UnauthorizedError('Invalid email or password.');
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+
+  if (!isPasswordValid) {
+    throw new UnauthorizedError('Invalid email or password.');
+  }
+
+  // User exists but not verified
   if (!user.isVerified) {
     await resendOtp(email, { bypassCooldown: true });
+
     return {
       status: 'pending_verification',
-      email: email,
+      email,
     };
   }
 
-  const payload = {
+  const payload: JwtPayload = {
     userId: user.userId,
     email: user.email,
     isVerified: true,

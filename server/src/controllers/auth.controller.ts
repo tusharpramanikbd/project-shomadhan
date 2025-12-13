@@ -108,60 +108,42 @@ const handleResendOtp = async (
   }
 };
 
-const handleLoginUser = async (req: Request, res: Response): Promise<void> => {
+const handleLoginUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      res.status(400).json({
-        success: false,
-        message: 'Email and password are required.',
-      });
-      return;
+      throw new BadRequestError('Email and password are required.');
     }
 
     if (typeof email !== 'string' || typeof password !== 'string') {
-      res.status(400).json({
-        success: false,
-        message: 'Email and password must be valid strings.',
-      });
-      return;
+      throw new BadRequestError('Email and password must be valid strings.');
     }
 
     const result = await AuthService.loginUser(email, password);
 
     if (result.status === 'pending_verification') {
-      res.status(401).json({
+      res.status(403).json({
         success: false,
         message:
-          'Login pending verification. Please verify your email with OTP.',
+          'Your email is not verified. Please complete verification to continue.',
         data: { email: result.email },
       });
       return;
     }
 
-    if (result.status === 'logged_in') {
-      res.status(200).json({
-        success: true,
-        message: 'Login successful.',
-        token: result.token,
-        data: result.userData,
-      });
-      return;
-    }
-
-    // If control reaches here → service returned something unexpected
-    res.status(500).json({
-      success: false,
-      message: 'Unexpected login state.',
+    res.status(200).json({
+      success: true,
+      message: 'Login successful.',
+      token: result.token,
+      data: result.userData,
     });
   } catch (error) {
-    console.error('Login failed:', error);
-
-    res.status(500).json({
-      success: false,
-      message: error instanceof Error ? error.message : 'Internal server error',
-    });
+    next(error);
   }
 };
 

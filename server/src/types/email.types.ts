@@ -4,3 +4,5 @@ export type TMailOptions = {
   text?: string;
   html?: string;
 };
+
+export type TNodeError = Error & { code?: string };

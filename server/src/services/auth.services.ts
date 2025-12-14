@@ -7,6 +7,7 @@ import { generateToken } from '../utils/jwt.utils.ts';
 import {
   BadRequestError,
   ConflictError,
+  InternalServerError,
   NotFoundError,
   UnauthorizedError,
 } from 'src/errors/index.ts';
@@ -24,7 +25,6 @@ import {
 import {
   checkCooldown,
   generateOtp,
-  sendOtp,
   setCooldown,
 } from 'src/utils/auth.utils.ts';
 import { TJwtPayload } from 'src/types/jwt.types.ts';
@@ -302,4 +302,50 @@ export const loginUser = async (
       upazila: user.upazilaName,
     },
   };
+};
+
+const sendOtp = async (email: string): Promise<void> => {
+  if (!email || !/\S+@\S+\.\S+/.test(email)) {
+    throw new BadRequestError(
+      MessageCodes.VALIDATION_EMAIL_INVALID,
+      'Invalid email format provided.'
+    );
+  }
+
+  const otp = generateOtp();
+  const redisKey = `otp:email:${email}`;
+
+  try {
+    const result = await redisClient.set(redisKey, otp, {
+      EX: OTP_EXPIRY_SECONDS,
+    });
+    if (result !== 'OK') {
+      console.warn(
+        `Redis SET command for OTP did not return 'OK' for key ${redisKey}. Result: ${result}`
+      );
+    }
+    console.log(
+      `OTP ${otp} stored/updated in Redis for ${email} with key ${redisKey}`
+    );
+  } catch (error) {
+    console.error('Redis error while storing OTP:', error);
+
+    throw new InternalServerError(
+      MessageCodes.REDIS_OTP_STORAGE_FAILED,
+      'Failed to store verification code. Please try again later.'
+    );
+  }
+
+  const emailSubject = 'Your Project Shomadhan Verification Code';
+  const emailText = `Your verification code for Project Shomadhan is: ${otp}\nThis code will expire in ${OTP_EXPIRY_SECONDS / 60} minutes.`;
+  const emailHtml = `<p>Your verification code for Project Shomadhan is: <strong>${otp}</strong></p><p>This code will expire in ${OTP_EXPIRY_SECONDS / 60} minutes.</p>`;
+
+  await sendEmail({
+    to: email,
+    subject: emailSubject,
+    text: emailText,
+    html: emailHtml,
+  });
+
+  console.log(`OTP email sent to ${email}`);
 };

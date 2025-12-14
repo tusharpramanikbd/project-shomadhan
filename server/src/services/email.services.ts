@@ -1,6 +1,8 @@
 import nodemailer from 'nodemailer';
 import 'dotenv/config';
-import { TMailOptions } from 'src/types/email.types.ts';
+import { TMailOptions, TNodeError } from 'src/types/email.types.ts';
+import { MessageCodes } from 'src/constants/messageCodes.constants.ts';
+import { InternalServerError } from 'src/errors/index.ts';
 
 // Creating a Nodemailer transporter using environment variables
 // This transporter configuration is specific to Gmail.
@@ -20,7 +22,10 @@ export const sendEmail = async (options: TMailOptions): Promise<void> => {
       'Email credentials (EMAIL_USER, EMAIL_PASS) are not configured in .env'
     );
 
-    throw new Error('Email service is not configured properly.');
+    throw new InternalServerError(
+      MessageCodes.EMAIL_SERVICE_NOT_CONFIGURED,
+      'Email service is not configured properly.'
+    );
   }
 
   const mailData = {
@@ -37,10 +42,20 @@ export const sendEmail = async (options: TMailOptions): Promise<void> => {
     const info = await transporter.sendMail(mailData);
     console.log('Email sent successfully: %s', info.messageId);
   } catch (error) {
-    console.error('Error sending email:', error);
+    const err = error as TNodeError;
 
-    throw new Error(
-      `Failed to send email. Error: ${error instanceof Error ? error.message : 'Unknown email error'}`
+    // SMTP connection issue
+    if (err.code === 'ECONNREFUSED') {
+      throw new InternalServerError(
+        MessageCodes.EMAIL_SERVICE_NOT_CONFIGURED,
+        'Email service is not configured properly.'
+      );
+    }
+
+    // Fallback unknown email failure
+    throw new InternalServerError(
+      MessageCodes.EMAIL_UNKNOWN_ERROR,
+      'Failed to send OTP email due to an unknown error.'
     );
   }
 };

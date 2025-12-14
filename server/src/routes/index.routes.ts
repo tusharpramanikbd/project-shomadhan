@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { ServiceUnavailableError } from 'src/errors/index.ts';
 import prisma from 'src/lib/prisma.ts';
+import { MessageCodes } from 'src/constants/messageCodes.constants.ts';
 
 const router = Router();
 
@@ -22,11 +23,17 @@ router.get(
 
       res.status(200).json({
         status: 'UP',
-        database: 'Connected',
+        code: MessageCodes.SYSTEM_DATABASE_CONNECTED,
+        database: 'Database Connected',
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
-      next(new ServiceUnavailableError('Database connection failed'));
+      next(
+        new ServiceUnavailableError(
+          MessageCodes.SYSTEM_DATABASE_CONNECTION_FAILED,
+          'Database connection failed'
+        )
+      );
     }
   }
 );

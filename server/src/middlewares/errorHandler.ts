@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 import { ApiError } from '../errors/ApiError.ts';
+import { MessageCodes } from 'src/constants/messageCodes.constants.ts';
 
 export const errorHandler: ErrorRequestHandler = (
   err: any,
@@ -11,6 +12,7 @@ export const errorHandler: ErrorRequestHandler = (
   if (err instanceof ApiError) {
     res.status(err.statusCode).json({
       success: false,
+      code: err.code,
       message: err.message,
     });
     return;
@@ -21,6 +23,7 @@ export const errorHandler: ErrorRequestHandler = (
 
   res.status(500).json({
     success: false,
+    code: MessageCodes.SYSTEM_INTERNAL_SERVER_ERROR,
     message: 'Internal server error',
   });
 };

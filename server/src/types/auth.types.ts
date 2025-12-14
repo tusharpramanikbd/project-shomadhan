@@ -29,6 +29,7 @@ export type TVerifyOtpResponse = {
 
 export type TResendOtpResponse = {
   blocked: boolean;
+  code: string;
   message: string;
   cooldownUntil?: number;
 };

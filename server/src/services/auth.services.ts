@@ -28,6 +28,7 @@ import {
   setCooldown,
 } from 'src/utils/auth.utils.ts';
 import { TJwtPayload } from 'src/types/jwt.types.ts';
+import { MessageCodes } from 'src/constants/messageCodes.constants.ts';
 
 export const registerUser = async (
   data: TRegisterPayload
@@ -48,7 +49,10 @@ export const registerUser = async (
 
   // Case 1: verified user exists → cannot register
   if (existingUser && existingUser.isVerified) {
-    throw new ConflictError('Email is already registered and verified.');
+    throw new ConflictError(
+      MessageCodes.AUTH_EMAIL_ALREADY_REGISTERED_VERIFIED,
+      'Email is already registered and verified.'
+    );
   }
 
   // Case 2: unverified user exists → resend OTP (bypass cooldown)
@@ -98,7 +102,10 @@ export const verifyOtp = async (
   providedOtp: string
 ): Promise<TVerifyOtpResponse> => {
   if (!email || !providedOtp) {
-    throw new BadRequestError('Email and OTP are required.');
+    throw new BadRequestError(
+      MessageCodes.VALIDATION_EMAIL_OTP_REQUIRED,
+      'Email and OTP are required.'
+    );
   }
 
   const otpKey = `otp:email:${email}`;
@@ -108,13 +115,17 @@ export const verifyOtp = async (
 
   if (!storedOtp) {
     throw new UnauthorizedError(
+      MessageCodes.OTP_EXPIRED_OR_INVALID,
       'The OTP has expired or is invalid. Please request a new one.'
     );
   }
 
   if (storedOtp !== providedOtp) {
     // TODO: Implement attempt counting here to prevent brute-force attacks
-    throw new UnauthorizedError('The OTP you entered is incorrect.');
+    throw new UnauthorizedError(
+      MessageCodes.OTP_INCORRECT,
+      'The OTP you entered is incorrect.'
+    );
   }
 
   // Clean up Redis
@@ -124,7 +135,10 @@ export const verifyOtp = async (
   // Validate user
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
-    throw new NotFoundError('User not found for this email.');
+    throw new NotFoundError(
+      MessageCodes.AUTH_USER_NOT_FOUND,
+      'User not found for this email.'
+    );
   }
 
   await prisma.user.update({
@@ -165,17 +179,26 @@ export const resendOtp = async (
   const bypassCooldown = options?.bypassCooldown ?? false;
 
   if (!email || !/\S+@\S+\.\S+/.test(email)) {
-    throw new BadRequestError('Please provide a valid email address.');
+    throw new BadRequestError(
+      MessageCodes.VALIDATION_EMAIL_INVALID,
+      'Please provide a valid email address.'
+    );
   }
 
   const user = await prisma.user.findUnique({ where: { email } });
 
   if (!user) {
-    throw new NotFoundError('No account found with this email address.');
+    throw new NotFoundError(
+      MessageCodes.AUTH_USER_NOT_FOUND,
+      'User not found for this email.'
+    );
   }
 
   if (user.isVerified) {
-    throw new ConflictError('This email is already verified. Please log in.');
+    throw new ConflictError(
+      MessageCodes.AUTH_EMAIL_ALREADY_VERIFIED,
+      'This email is already verified. Please log in.'
+    );
   }
 
   // Checking cooldown only when NOT bypassing
@@ -185,6 +208,7 @@ export const resendOtp = async (
     if (cooldownCheck.blocked) {
       return {
         blocked: true,
+        code: MessageCodes.OTP_RESEND_COOLDOWN_ACTIVE,
         message: 'Please wait before requesting another verification code.',
         cooldownUntil: cooldownCheck.cooldownUntil,
       };
@@ -211,6 +235,7 @@ export const resendOtp = async (
 
   return {
     blocked: false,
+    code: MessageCodes.OTP_RESENT_SUCCESS,
     message: 'A new verification code has been sent to your email.',
     cooldownUntil,
   };
@@ -221,19 +246,28 @@ export const loginUser = async (
   password: string
 ): Promise<TLoginResponse> => {
   if (!email || !/\S+@\S+\.\S+/.test(email) || !password) {
-    throw new BadRequestError('Email and password are required.');
+    throw new BadRequestError(
+      MessageCodes.VALIDATION_EMAIL_PASSWORD_REQUIRED,
+      'Email and password are required.'
+    );
   }
 
   const user = await prisma.user.findUnique({ where: { email } });
 
   if (!user) {
-    throw new UnauthorizedError('Invalid email or password.');
+    throw new UnauthorizedError(
+      MessageCodes.VALIDATION_EMAIL_PASSWORD_INVALID,
+      'Invalid email or password.'
+    );
   }
 
   const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
   if (!isPasswordValid) {
-    throw new UnauthorizedError('Invalid email or password.');
+    throw new UnauthorizedError(
+      MessageCodes.VALIDATION_EMAIL_PASSWORD_INVALID,
+      'Invalid email or password.'
+    );
   }
 
   // User exists but not verified

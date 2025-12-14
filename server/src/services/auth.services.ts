@@ -308,7 +308,7 @@ const sendOtp = async (email: string): Promise<void> => {
   if (!email || !/\S+@\S+\.\S+/.test(email)) {
     throw new BadRequestError(
       MessageCodes.VALIDATION_EMAIL_INVALID,
-      'Invalid email format provided.'
+      'Please provide a valid email address.'
     );
   }
 

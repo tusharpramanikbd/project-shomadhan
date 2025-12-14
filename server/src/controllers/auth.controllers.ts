@@ -65,8 +65,8 @@ export const handleVerifyOtp = async (
       typeof otp !== 'string'
     ) {
       throw new BadRequestError(
-        MessageCodes.VALIDATION_EMAIL_PASSWORD_INVALID,
-        'Email and OTP must be valid strings.'
+        MessageCodes.VALIDATION_EMAIL_OTP_INVALID,
+        'Invalid email or otp.'
       );
     }
 
@@ -96,7 +96,7 @@ export const handleResendOtp = async (
     if (!email || typeof email !== 'string') {
       throw new BadRequestError(
         MessageCodes.VALIDATION_EMAIL_INVALID,
-        'A valid email address is required.'
+        'Please provide a valid email address.'
       );
     }
 
@@ -144,7 +144,7 @@ export const handleLoginUser = async (
     if (typeof email !== 'string' || typeof password !== 'string') {
       throw new BadRequestError(
         MessageCodes.VALIDATION_EMAIL_PASSWORD_INVALID,
-        'Email and password must be valid strings.'
+        'Invalid email or password.'
       );
     }
 

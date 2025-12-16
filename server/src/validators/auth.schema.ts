@@ -27,5 +27,16 @@ export const registerSchema = z.object({
   address: z.string().optional(),
 });
 
-// Infer TypeScript type from schema
-export type RegisterInput = z.infer<typeof registerSchema>;
+export const verifyOtpSchema = z.object({
+  email: z.email(),
+  otp: z.string().min(6).max(6),
+});
+
+export const resendOtpSchema = z.object({
+  email: z.email(),
+});
+
+export const loginSchema = z.object({
+  email: z.email(),
+  password: z.string().min(8),
+});

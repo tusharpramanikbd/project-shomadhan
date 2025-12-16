@@ -5,7 +5,6 @@ import { sendEmail } from './email.services.ts';
 import 'dotenv/config';
 import { generateToken } from '../utils/jwt.utils.ts';
 import {
-  BadRequestError,
   ConflictError,
   InternalServerError,
   NotFoundError,
@@ -171,13 +170,6 @@ export const resendOtp = async (
 ): Promise<TResendOtpResponse> => {
   const bypassCooldown = options?.bypassCooldown ?? false;
 
-  if (!email || !/\S+@\S+\.\S+/.test(email)) {
-    throw new BadRequestError(
-      MessageCodes.VALIDATION_EMAIL_INVALID,
-      'Please provide a valid email address.'
-    );
-  }
-
   const user = await prisma.user.findUnique({ where: { email } });
 
   if (!user) {
@@ -238,19 +230,12 @@ export const loginUser = async (
   email: string,
   password: string
 ): Promise<TLoginResponse> => {
-  if (!email || !/\S+@\S+\.\S+/.test(email) || !password) {
-    throw new BadRequestError(
-      MessageCodes.VALIDATION_EMAIL_PASSWORD_REQUIRED,
-      'Email and password are required.'
-    );
-  }
-
   const user = await prisma.user.findUnique({ where: { email } });
 
   if (!user) {
     throw new UnauthorizedError(
       MessageCodes.VALIDATION_EMAIL_PASSWORD_INVALID,
-      'Invalid email or password.'
+      'Email and password must be valid.'
     );
   }
 
@@ -259,7 +244,7 @@ export const loginUser = async (
   if (!isPasswordValid) {
     throw new UnauthorizedError(
       MessageCodes.VALIDATION_EMAIL_PASSWORD_INVALID,
-      'Invalid email or password.'
+      'Email and password must be valid.'
     );
   }
 

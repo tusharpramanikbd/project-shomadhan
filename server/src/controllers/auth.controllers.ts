@@ -3,8 +3,12 @@ import * as AuthService from '../services/auth.services.ts';
 import { ApiError } from 'src/errors/ApiError.ts';
 import { BadRequestError } from 'src/errors/index.ts';
 import { MessageCodes } from 'src/constants/messageCodes.constants.ts';
-import { registerSchema } from 'src/validators/auth/register.schema.ts';
-import { verifyOtpSchema } from 'src/validators/auth/verifyOtp.schema.ts';
+import {
+  loginSchema,
+  registerSchema,
+  resendOtpSchema,
+  verifyOtpSchema,
+} from 'src/validators/auth.schema.ts';
 
 export const handleRegisterUser = async (
   req: Request,
@@ -99,32 +103,23 @@ export const handleResendOtp = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email } = req.body;
+    const parsed = resendOtpSchema.safeParse(req.body);
 
-    if (!email || typeof email !== 'string') {
+    if (!parsed.success) {
       throw new BadRequestError(
         MessageCodes.VALIDATION_EMAIL_INVALID,
         'Please provide a valid email address.'
       );
     }
 
+    const { email } = req.body;
+
     const { blocked, code, message, cooldownUntil } =
       await AuthService.resendOtp(email);
 
-    // Cooldown active (not an error)
-    if (blocked) {
-      res.status(200).json({
-        success: false,
-        code,
-        message,
-        cooldownUntil,
-      });
-      return;
-    }
-
-    // OTP sent successfully
+    // If blocked is true, it means cooldown is active, otherwise OTP resent successfully
     res.status(200).json({
-      success: true,
+      success: !blocked,
       code,
       message,
       cooldownUntil,
@@ -140,21 +135,16 @@ export const handleLoginUser = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const parsed = loginSchema.safeParse(req.body);
 
-    if (!email || !password) {
-      throw new BadRequestError(
-        MessageCodes.VALIDATION_EMAIL_PASSWORD_REQUIRED,
-        'Email and password are required.'
-      );
-    }
-
-    if (typeof email !== 'string' || typeof password !== 'string') {
+    if (!parsed.success) {
       throw new BadRequestError(
         MessageCodes.VALIDATION_EMAIL_PASSWORD_INVALID,
-        'Invalid email or password.'
+        'Email and password must be valid.'
       );
     }
+
+    const { email, password } = req.body;
 
     const { status, token, userData } = await AuthService.loginUser(
       email,
@@ -162,7 +152,7 @@ export const handleLoginUser = async (
     );
 
     if (status === 'pending_verification') {
-      res.status(403).json({
+      res.status(401).json({
         success: false,
         code: MessageCodes.AUTH_EMAIL_NOT_VERIFIED,
         message:

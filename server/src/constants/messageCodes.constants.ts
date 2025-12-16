@@ -6,6 +6,7 @@ export const MessageCodes = {
   AUTH_USER_NOT_FOUND: 'AUTH_USER_NOT_FOUND', // User not found for this email.
   AUTH_EMAIL_ALREADY_VERIFIED: 'AUTH_EMAIL_ALREADY_VERIFIED', // This email is already verified. Please log in.
   AUTH_UNEXPECTED_REGISTRATION_STATE: 'AUTH_UNEXPECTED_REGISTRATION_STATE', // Unexpected registration state.
+  AUTH_UNEXPECTED_LOGIN_STATE: 'AUTH_UNEXPECTED_LOGIN_STATE', // Unexpected login state.
   AUTH_EMAIL_NOT_VERIFIED: 'AUTH_EMAIL_NOT_VERIFIED', // Your email is not verified. Please complete verification to continue.
   AUTH_REGISTER_SUCCESS: 'AUTH_REGISTER_SUCCESS', // Registration successful! Please verify your account using the OTP sent to your email.
   AUTH_LOGIN_SUCCESS: 'AUTH_LOGIN_SUCCESS', // Login successful.

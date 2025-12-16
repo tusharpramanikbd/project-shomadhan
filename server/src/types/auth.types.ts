@@ -1,3 +1,14 @@
+type TUserData = {
+  userId: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  division: string | null;
+  district: string | null;
+  upazila: string | null;
+  isVerified?: boolean;
+};
+
 export type TRegisterPayload = {
   firstName: string;
   lastName: string;
@@ -9,22 +20,14 @@ export type TRegisterPayload = {
   address?: string;
 };
 
-export type TRegisterResponse =
-  | { status: 'user_created'; email: string }
-  | { status: 'pending_verification'; email: string };
+export type TRegisterResponse = {
+  status: 'user_created' | 'pending_verification';
+  email: string;
+};
 
 export type TVerifyOtpResponse = {
   token: string;
-  userData: {
-    userId: number;
-    email: string;
-    firstName: string;
-    lastName: string;
-    division: string | null;
-    district: string | null;
-    upazila: string | null;
-    isVerified: boolean;
-  };
+  userData: TUserData;
 };
 
 export type TResendOtpResponse = {
@@ -34,6 +37,8 @@ export type TResendOtpResponse = {
   cooldownUntil?: number;
 };
 
-export type TLoginResponse =
-  | { status: 'pending_verification'; email: string }
-  | { status: 'logged_in'; token: string; userData: any };
+export type TLoginResponse = {
+  status: 'pending_verification' | 'logged_in';
+  token?: string;
+  userData?: TUserData;
+};

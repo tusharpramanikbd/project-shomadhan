@@ -276,7 +276,6 @@ export const loginUser = async (
 
     return {
       status: 'pending_verification',
-      email,
     };
   }
 

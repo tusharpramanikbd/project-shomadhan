@@ -12,18 +12,6 @@ export const handleRegisterUser = async (
   try {
     const { status, email } = await AuthService.registerUser(req.body);
 
-    if (status === 'user_created') {
-      // New user created
-      res.status(201).json({
-        success: true,
-        code: MessageCodes.AUTH_REGISTER_SUCCESS,
-        message:
-          'Registration successful! Please verify your account using the OTP sent to your email.',
-        data: { email },
-      });
-      return;
-    }
-
     if (status === 'pending_verification') {
       // User already existed but is unverified
       res.status(200).json({
@@ -31,6 +19,18 @@ export const handleRegisterUser = async (
         code: MessageCodes.AUTH_EMAIL_ALREADY_REGISTERED_UNVERIFIED,
         message:
           'This email is already registered but not verified. A new OTP has been sent to your inbox.',
+        data: { email },
+      });
+      return;
+    }
+
+    if (status === 'user_created') {
+      // New user created
+      res.status(201).json({
+        success: true,
+        code: MessageCodes.AUTH_REGISTER_SUCCESS,
+        message:
+          'Registration successful! Please verify your account using the OTP sent to your email.',
         data: { email },
       });
       return;
@@ -148,26 +148,41 @@ export const handleLoginUser = async (
       );
     }
 
-    const result = await AuthService.loginUser(email, password);
+    const { status, token, userData } = await AuthService.loginUser(
+      email,
+      password
+    );
 
-    if (result.status === 'pending_verification') {
+    if (status === 'pending_verification') {
       res.status(403).json({
         success: false,
         code: MessageCodes.AUTH_EMAIL_NOT_VERIFIED,
         message:
           'Your email is not verified. Please complete verification to continue.',
-        data: { email: result.email },
+        data: { email },
       });
       return;
     }
 
-    res.status(200).json({
-      success: true,
-      code: MessageCodes.AUTH_LOGIN_SUCCESS,
-      message: 'Login successful.',
-      token: result.token,
-      data: result.userData,
-    });
+    if (status === 'logged_in') {
+      res.status(200).json({
+        success: true,
+        code: MessageCodes.AUTH_LOGIN_SUCCESS,
+        message: 'Login successful.',
+        token: token,
+        data: userData,
+      });
+      return;
+    }
+
+    // Should not normally happen
+    next(
+      new ApiError(
+        500,
+        MessageCodes.AUTH_UNEXPECTED_LOGIN_STATE,
+        'Unexpected login state.'
+      )
+    );
   } catch (error) {
     next(error);
   }

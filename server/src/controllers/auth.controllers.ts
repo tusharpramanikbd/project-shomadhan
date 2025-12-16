@@ -3,6 +3,7 @@ import * as AuthService from '../services/auth.services.ts';
 import { ApiError } from 'src/errors/ApiError.ts';
 import { BadRequestError } from 'src/errors/index.ts';
 import { MessageCodes } from 'src/constants/messageCodes.constants.ts';
+import { registerSchema } from 'src/validators/auth/register.schema.ts';
 
 export const handleRegisterUser = async (
   req: Request,
@@ -10,6 +11,15 @@ export const handleRegisterUser = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const parsed = registerSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      throw new BadRequestError(
+        MessageCodes.VALIDATION_REGISTER_INVALID,
+        'Invalid registration data.'
+      );
+    }
+
     const { status, email } = await AuthService.registerUser(req.body);
 
     if (status === 'pending_verification') {

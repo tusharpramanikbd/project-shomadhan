@@ -19,6 +19,7 @@ export const MessageCodes = {
   OTP_RESEND_COOLDOWN_ACTIVE: 'OTP_RESEND_COOLDOWN_ACTIVE', // Please wait before requesting another verification code.
   OTP_RESENT_SUCCESS: 'OTP_RESENT_SUCCESS', // A new verification code has been sent to your email.
 
+  VALIDATION_REGISTER_INVALID: 'VALIDATION_REGISTER_INVALID', // Invalid registration data.
   VALIDATION_EMAIL_INVALID: 'VALIDATION_EMAIL_INVALID', // Please provide a valid email address.
   VALIDATION_EMAIL_PASSWORD_REQUIRED: 'VALIDATION_EMAIL_PASSWORD_REQUIRED', // Email and password are required.
   VALIDATION_EMAIL_PASSWORD_INVALID: 'VALIDATION_EMAIL_PASSWORD_INVALID', // Invalid email or password.

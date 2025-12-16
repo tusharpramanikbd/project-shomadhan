@@ -89,7 +89,7 @@ export const registerUser = async (
   });
 
   // Sending OTP
-  await sendOtp(email);
+  await sendOtp(user.email);
 
   return {
     status: 'user_created',
@@ -101,13 +101,6 @@ export const verifyOtp = async (
   email: string,
   providedOtp: string
 ): Promise<TVerifyOtpResponse> => {
-  if (!email || !providedOtp) {
-    throw new BadRequestError(
-      MessageCodes.VALIDATION_EMAIL_OTP_REQUIRED,
-      'Email and OTP are required.'
-    );
-  }
-
   const otpKey = `otp:email:${email}`;
   const cooldownKey = `otp:cooldown:${email}`;
 
@@ -304,13 +297,6 @@ export const loginUser = async (
 };
 
 const sendOtp = async (email: string): Promise<void> => {
-  if (!email || !/\S+@\S+\.\S+/.test(email)) {
-    throw new BadRequestError(
-      MessageCodes.VALIDATION_EMAIL_INVALID,
-      'Please provide a valid email address.'
-    );
-  }
-
   const otp = generateOtp();
   const redisKey = `otp:email:${email}`;
 

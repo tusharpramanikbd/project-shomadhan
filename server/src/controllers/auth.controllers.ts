@@ -4,6 +4,7 @@ import { ApiError } from 'src/errors/ApiError.ts';
 import { BadRequestError } from 'src/errors/index.ts';
 import { MessageCodes } from 'src/constants/messageCodes.constants.ts';
 import { registerSchema } from 'src/validators/auth/register.schema.ts';
+import { verifyOtpSchema } from 'src/validators/auth/verifyOtp.schema.ts';
 
 export const handleRegisterUser = async (
   req: Request,
@@ -66,19 +67,16 @@ export const handleVerifyOtp = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email, otp } = req.body;
+    const parsed = verifyOtpSchema.safeParse(req.body);
 
-    if (
-      !email ||
-      typeof email !== 'string' ||
-      !otp ||
-      typeof otp !== 'string'
-    ) {
+    if (!parsed.success) {
       throw new BadRequestError(
         MessageCodes.VALIDATION_EMAIL_OTP_INVALID,
-        'Invalid email or otp.'
+        'Invalid email or OTP.'
       );
     }
+
+    const { email, otp } = req.body;
 
     const { token, userData } = await AuthService.verifyOtp(email, otp);
 

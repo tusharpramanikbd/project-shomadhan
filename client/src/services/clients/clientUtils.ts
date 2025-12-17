@@ -7,6 +7,7 @@ export const formatAxiosError = (error: AxiosError): ApiError => {
     const data = error.response.data as ApiError;
     return {
       status: error.response.status,
+      code: data.code ?? null,
       message: data.message ?? 'Something went wrong',
       data,
     };
@@ -16,6 +17,7 @@ export const formatAxiosError = (error: AxiosError): ApiError => {
   if (error.request) {
     return {
       status: null,
+      code: null,
       message:
         'No response from server. Please check your internet connection.',
       data: null,
@@ -25,6 +27,7 @@ export const formatAxiosError = (error: AxiosError): ApiError => {
   // Something else happened setting up the request
   return {
     status: null,
+    code: null,
     message: error.message || 'Unexpected error occurred',
     data: null,
   };

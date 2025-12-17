@@ -6,6 +6,7 @@ import { AxiosError } from 'axios';
 
 interface ITokenRes {
   status: boolean;
+  code: string;
   message: string;
   token: string;
   data: {
@@ -27,6 +28,7 @@ export interface ILoginReq {
 
 interface IResendOtpRes {
   status: boolean;
+  code: string;
   message: string;
   cooldownUntil: number;
 }
@@ -38,6 +40,7 @@ interface IVerifyOTPReq {
 
 type RegisterUserResponse = {
   status: boolean;
+  code: string;
   message: string;
   data: {
     email: string;

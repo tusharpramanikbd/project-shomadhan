@@ -1,3 +1,4 @@
+import BaseInput from '@/components/BaseInput';
 import useLogin from '@/hooks/useLogin';
 
 const LoginPage = () => {
@@ -7,34 +8,26 @@ const LoginPage = () => {
       <div className="card glass w-128 shadow-lg">
         <form className="card-body" onSubmit={handleSubmit(onSubmit)}>
           {/* Email Address */}
-          <fieldset className="fieldset">
-            <legend className="fieldset-legend">Email Address</legend>
-            <input
-              type="text"
-              className="input w-full"
-              placeholder="example@email.com"
-              {...register('email')}
-            />
-            {errors.email && (
-              <p className="label text-red-500">{errors.email.message}</p>
-            )}
-          </fieldset>
+          <BaseInput
+            label="Email Address"
+            type="text"
+            placeholder="example@email.com"
+            isError={!!errors.email}
+            helperText={errors.email ? errors.email.message : undefined}
+            disabled={isSubmitting}
+            {...register('email')}
+          />
 
           {/* Password */}
-          <fieldset className="fieldset">
-            <legend className="fieldset-legend">Password</legend>
-            <input
-              type="password"
-              className="input w-full"
-              placeholder="Password"
-              {...register('password')}
-            />
-            {errors.password && (
-              <p className="label text-red-500 text-wrap">
-                {errors.password.message}
-              </p>
-            )}
-          </fieldset>
+          <BaseInput
+            label="Password"
+            type="password"
+            placeholder="Password"
+            isError={!!errors.password}
+            helperText={errors.password ? errors.password.message : undefined}
+            disabled={isSubmitting}
+            {...register('password')}
+          />
 
           <div className="mt-6">
             <button

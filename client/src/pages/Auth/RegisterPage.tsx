@@ -1,3 +1,4 @@
+import BaseInput from '@/components/BaseInput';
 import useRegister from '@/hooks/useRegister';
 
 const RegisterPage = () => {
@@ -20,79 +21,70 @@ const RegisterPage = () => {
         <form className="card-body" onSubmit={handleSubmit(onSubmit)}>
           <div className="flex justify-between items-center gap-4">
             {/* First Name */}
-            <fieldset className="fieldset w-full">
-              <legend className="fieldset-legend">First Name</legend>
-              <input
-                type="text"
-                className="input"
-                placeholder="John"
-                {...register('firstName')}
-              />
-              {errors.firstName && (
-                <p className="label text-red-500">{errors.firstName.message}</p>
-              )}
-            </fieldset>
+            <BaseInput
+              label="First Name"
+              type="text"
+              placeholder="John"
+              isError={!!errors.firstName}
+              helperText={
+                errors.firstName ? errors.firstName.message : undefined
+              }
+              disabled={isSubmitting}
+              {...register('firstName')}
+            />
 
             {/* Last Name */}
-            <fieldset className="fieldset w-full">
-              <legend className="fieldset-legend">Last Name</legend>
-              <input
-                type="text"
-                className="input"
-                placeholder="Doe"
-                {...register('lastName')}
-              />
-              {errors.lastName && (
-                <p className="label text-red-500">{errors.lastName.message}</p>
-              )}
-            </fieldset>
+            <BaseInput
+              label="Last Name"
+              type="text"
+              placeholder="Doe"
+              isError={!!errors.lastName}
+              helperText={errors.lastName ? errors.lastName.message : undefined}
+              disabled={isSubmitting}
+              {...register('lastName')}
+            />
           </div>
 
           {/* Email Address */}
-          <fieldset className="fieldset">
-            <legend className="fieldset-legend">Email Address</legend>
-            <input
-              type="text"
-              className="input w-full"
-              placeholder="example@email.com"
-              {...register('email')}
-            />
-            {errors.email && (
-              <p className="label text-red-500">{errors.email.message}</p>
-            )}
-          </fieldset>
+          <BaseInput
+            label="Email Address"
+            type="text"
+            placeholder="example@email.com"
+            isError={!!errors.email}
+            helperText={errors.email ? errors.email.message : undefined}
+            disabled={isSubmitting}
+            {...register('email')}
+          />
 
           {/* Password */}
-          <fieldset className="fieldset">
-            <legend className="fieldset-legend">Password</legend>
-            <input
-              type="password"
-              className="input w-full"
-              placeholder="Password"
-              {...register('password.password')}
-            />
-            {errors.password?.password && (
-              <p className="label text-red-500 text-wrap">
-                {errors.password?.password.message}
-              </p>
-            )}
-          </fieldset>
+          <BaseInput
+            label="Password"
+            type="password"
+            placeholder="Password"
+            isError={!!errors.password?.password}
+            helperText={
+              errors.password?.password
+                ? errors.password.password.message
+                : undefined
+            }
+            disabled={isSubmitting}
+            {...register('password.password')}
+          />
 
           {/* Confirm Password */}
-          <fieldset className="fieldset">
-            <legend className="fieldset-legend">Confirm Password</legend>
-            <input
-              type="password"
-              className="input w-full"
-              placeholder="Confirm Password"
-              {...register('password.confirmPassword')}
-            />
-            {errors.password?.confirmPassword && (
-              <p className="label text-red-500">
-                {errors.password?.confirmPassword.message}
-              </p>
-            )}
-          </fieldset>
+          <BaseInput
+            label="Confirm Password"
+            type="password"
+            placeholder="Confirm Password"
+            isError={!!errors.password?.confirmPassword}
+            helperText={
+              errors.password?.confirmPassword
+                ? errors.password.confirmPassword.message
+                : undefined
+            }
+            disabled={isSubmitting}
+            {...register('password.confirmPassword')}
+          />
 
           <div className="flex justify-between items-center gap-2">
             {/* Division */}
@@ -159,18 +151,15 @@ const RegisterPage = () => {
           </div>
 
           {/* Address */}
-          <fieldset className="fieldset">
-            <legend className="fieldset-legend">Address</legend>
-            <input
-              type="text"
-              className="input w-full"
-              placeholder="Address"
-              {...register('address')}
-            />
-            {errors.address && (
-              <p className="label text-red-500">{errors.address.message}</p>
-            )}
-          </fieldset>
+          <BaseInput
+            label="Address"
+            type="text"
+            placeholder="Address"
+            isError={!!errors.address}
+            helperText={errors.address ? errors.address.message : undefined}
+            disabled={isSubmitting}
+            {...register('address')}
+          />
 
           <div className="mt-6">
             <button

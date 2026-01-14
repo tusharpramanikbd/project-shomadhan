@@ -16,7 +16,7 @@ const BaseInput = ({
   ...props
 }: TBaseInput) => {
   return (
-    <fieldset className="fieldset">
+    <fieldset className="fieldset w-full">
       {label && <legend className="fieldset-legend">{label}</legend>}
       <input
         type={type}

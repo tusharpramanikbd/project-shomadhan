@@ -1,4 +1,6 @@
+import BaseButton from '@/components/BaseButton';
 import BaseInput from '@/components/BaseInput';
+import BaseSelect from '@/components/BaseSelect';
 import useRegister from '@/hooks/useRegister';
 
 const RegisterPage = () => {
@@ -88,66 +90,51 @@ const RegisterPage = () => {
 
           <div className="flex justify-between items-center gap-2">
             {/* Division */}
-            <fieldset className="fieldset w-full">
-              <legend className="fieldset-legend">Division</legend>
-              <select className="select" {...register('division')}>
-                <option disabled value="">
-                  Select Division
-                </option>
-                {divisions.map((div) => (
-                  <option key={div.id} value={div.id}>
-                    {div.name}
-                  </option>
-                ))}
-              </select>
-              {errors.division && (
-                <p className="label text-red-500">{errors.division.message}</p>
-              )}
-            </fieldset>
+            <BaseSelect
+              label="Division"
+              options={divisions?.map((div) => ({
+                value: div.id,
+                label: div.name,
+              }))}
+              isError={!!errors.division}
+              helperText={
+                errors.division ? errors.division?.message : undefined
+              }
+              firstOptionLabel="Select Division"
+              {...register('division')}
+            />
 
             {/* District */}
-            <fieldset className="fieldset w-full">
-              <legend className="fieldset-legend">District</legend>
-              <select
-                className="select"
-                {...register('district')}
-                disabled={!districts?.length || isDistrictLoading}
-              >
-                <option disabled value="">
-                  {isDistrictLoading ? 'Loading...' : 'Select District'}
-                </option>
-                {districts?.map((dist) => (
-                  <option key={dist?.id} value={dist?.id}>
-                    {dist?.name}
-                  </option>
-                ))}
-              </select>
-              {errors.district && (
-                <p className="label text-red-500">{errors.district.message}</p>
-              )}
-            </fieldset>
+            <BaseSelect
+              label="District"
+              options={districts?.map((dist) => ({
+                value: dist.id,
+                label: dist.name,
+              }))}
+              isError={!!errors.district}
+              helperText={
+                errors.district ? errors.district?.message : undefined
+              }
+              firstOptionLabel={
+                isDistrictLoading ? 'Loading...' : 'Select District'
+              }
+              {...register('district')}
+            />
 
             {/* Upazila */}
-            <fieldset className="fieldset w-full">
-              <legend className="fieldset-legend">Upazila</legend>
-              <select
-                className="select"
-                {...register('upazila')}
-                disabled={!upazilas?.length || isUpazilaLoading}
-              >
-                <option disabled value="">
-                  {isUpazilaLoading ? 'Loading...' : 'Select Upazila'}
-                </option>
-                {upazilas?.map((upa) => (
-                  <option key={upa?.id} value={upa?.id}>
-                    {upa?.name}
-                  </option>
-                ))}
-              </select>
-              {errors.upazila && (
-                <p className="label text-red-500">{errors.upazila.message}</p>
-              )}
-            </fieldset>
+            <BaseSelect
+              label="Upazila"
+              options={upazilas?.map((upa) => ({
+                value: upa.id,
+                label: upa.name,
+              }))}
+              isError={!!errors.upazila}
+              helperText={errors.upazila ? errors.upazila?.message : undefined}
+              firstOptionLabel={
+                isUpazilaLoading ? 'Loading...' : 'Select Upazila'
+              }
+              {...register('upazila')}
+            />
           </div>
 
           {/* Address */}
@@ -162,12 +149,11 @@ const RegisterPage = () => {
           />
 
           <div className="mt-6">
-            <button
-              disabled={isSubmitting}
-              className="btn btn-primary btn-block"
-            >
-              Register
-            </button>
+            <BaseButton
+              label="Register"
+              isDisabled={isSubmitting}
+              isLoading={isSubmitting}
+            />
           </div>
         </form>
       </div>

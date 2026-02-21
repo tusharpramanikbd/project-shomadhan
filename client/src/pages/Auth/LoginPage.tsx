@@ -1,3 +1,4 @@
+import BaseButton from '@/components/BaseButton';
 import BaseInput from '@/components/BaseInput';
 import useLogin from '@/hooks/useLogin';
 
@@ -30,12 +31,11 @@ const LoginPage = () => {
           />
 
           <div className="mt-6">
-            <button
-              disabled={isSubmitting}
-              className="btn btn-primary btn-block"
-            >
-              Login
-            </button>
+            <BaseButton
+              label="Login"
+              isDisabled={isSubmitting}
+              isLoading={isSubmitting}
+            />
           </div>
         </form>
       </div>

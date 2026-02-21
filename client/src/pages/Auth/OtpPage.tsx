@@ -1,3 +1,4 @@
+import BaseButton from '@/components/BaseButton';
 import OtpInput from '@/components/OtpInput';
 import useCountDownTimer from '@/hooks/useCountDownTimer';
 import useOtp from '@/hooks/useOTP';
@@ -36,13 +37,12 @@ const OtpPage = () => {
         </div>
 
         <div className="mt-8">
-          <button
+          <BaseButton
+            label="Submit"
+            isDisabled={isLoading}
+            isLoading={isLoading}
             onClick={() => handleSubmit({ email, otp })}
-            disabled={isLoading}
-            className="btn btn-primary btn-block"
-          >
-            Submit
-          </button>
+          />
         </div>
       </div>
     </div>

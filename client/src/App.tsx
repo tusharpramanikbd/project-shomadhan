@@ -8,23 +8,17 @@ import FeedPage from '@/pages/FeedPage';
 
 function App() {
   return (
-    <div className="w-full h-screen">
-      <nav className="bg-gray-100 p-4 shadow">
+    <div className="w-full h-screen bg-gradient-to-r from-[#000030] to-[#01333D]">
+      <nav className="p-4">
         <ul className="flex space-x-4">
           <li>
-            <Link to="/" className="text-blue-500 hover:text-blue-700">
-              Home
-            </Link>
+            <Link to="/">Home</Link>
           </li>
           <li>
-            <Link to="/login" className="text-blue-500 hover:text-blue-700">
-              Login
-            </Link>
+            <Link to="/login">Login</Link>
           </li>
           <li>
-            <Link to="/register" className="text-blue-500 hover:text-blue-700">
-              Register
-            </Link>
+            <Link to="/register">Register</Link>
           </li>
         </ul>
       </nav>

@@ -1,4 +1,5 @@
 import { BASE_API_URL } from '@/constants/globals';
+import { useAuthStore } from '@/stores/auth.store';
 import axios, {
   AxiosError,
   AxiosInstance,
@@ -18,6 +19,12 @@ const axiosInstance = axios.create({
 const onAxiosRequest = async (
   config: InternalAxiosRequestConfig
 ): Promise<InternalAxiosRequestConfig> => {
+  const token = useAuthStore.getState().accessToken;
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
   return config;
 };
 
@@ -30,6 +37,11 @@ const onAxiosResponse = (response: AxiosResponse): AxiosResponse => {
 };
 
 const onAxiosResponseError = (error: AxiosError): Promise<AxiosError> => {
+  if (error.response?.status === 401) {
+    useAuthStore.getState().logout();
+    window.location.href = '/login';
+  }
+
   return Promise.reject(error);
 };
 
